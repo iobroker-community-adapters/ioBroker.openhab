@@ -482,6 +482,8 @@ function connect(callback) {
                 var items = JSON.parse(body);
                 var enums = {};
                 var _states = [];
+                var objs = [];
+                var id;
                 for (var i = 0; i < items.length; i++) {
                     if (items[i].type === 'Group') {
                         if (enums[items[i].name]) {
@@ -498,29 +500,31 @@ function connect(callback) {
                                 },
                                 type: 'enum'
                             };
+                            objs.push(enums[items[i].name]);
                         }
-                        objects[enums[items[i].name]._id] = enums[items[i].name];
                     } else {
                         var common = ohTypes[items[i].type] ? ohTypes[items[i].type](items[i]) : {
                             type: 'string',
                             role: 'state',
                             name: items[i].label
                         };
+                        id = adapter.namespace + '.items.' + items[i].name;
 
-                        objects[adapter.namespace + '.' + items[i].name] = {
-                            _id: adapter.namespace + '.' + items[i].name,
+                        objs.push({
+                            _id: id,
                             common: common,
                             native: {
                                 name: items[i].name
                             },
                             type: 'state'
-                        };
+                        });
 
                         // insert to enums
                         if (items[i].groupNames && items[i].groupNames.length) {
                             for (var e = 0; e < items[i].groupNames.length; e++) {
                                 var group = items[i].groupNames[e];
-                                enums[group] = enums[group] || {
+                                if (!enums[group]) {
+                                    enums[group] = {
                                         _id: 'enum.openhab.' + group,
                                         common: {
                                             members: []
@@ -528,20 +532,27 @@ function connect(callback) {
                                         native: {},
                                         type: 'enum'
                                     };
+                                    objs.push(enums[group]);
+                                }
                                 enums[group].common.members.push(adapter.namespace + '.' + items[i].name);
                             }
                         }
 
                         if (items[i].state !== 'undefined') {
+                            if (items[i].state === 'ON' || items[i].state === 'closed') items[i].state = true;
+                            if (items[i].state === 'OFF' || items[i].state === 'open') items[i].state = false;
+                            if (parseFloat(items[i].state).toString() === items[i].state.toString()) items[i].state = parseFloat(items[i].state);
+                            
+
                             _states.push({
-                                _id: 'enums.openhab.' + items[i].name,
+                                _id: id,
                                 val: {val: items[i].state, ack: true}
                             });
                         }
                     }
                 }
 
-                syncObjects(objects, function () {
+                syncObjects(objs, function () {
                     syncStates(_states, callback);
                 })
             } catch (e) {
