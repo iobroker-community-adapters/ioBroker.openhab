@@ -1,0 +1,60 @@
+{
+    "common": {
+        "name":                     "openhab",
+        "version":                  "0.1.0",
+	    "news": {
+			"0.1.0": {
+			  "en": "initial adapter",
+			  "de": "Initiale Version",
+			  "ru": "Первоначальный адаптер"
+			}
+		},
+        "title":                    "openhab adapter",
+        "desc":                     {
+				 "en": "ioBroker openhab Adapter",
+				 "de": "ioBroker openhab Adapter",
+				 "ru": "ioBroker openhab драйвер"
+		},
+        "platform":                 "Javascript/Node.js",
+        "mode":                     "daemon",
+        "icon":                     "openhab.png",
+        "enabled":                  true,
+		"extIcon":                  "https://raw.githubusercontent.com/ioBroker/ioBroker.openhab/master/admin/openhab.png",
+		"keywords":                 ["openhab"],
+        "readme":                   "https://github.com/ioBroker/ioBroker.openhab/blob/master/README.md",
+		"loglevel":                 "info",
+        "type":                     "iot-system"
+    },
+    "native": {
+        "url": "http://demo.openhab.org:8080/rest",
+        "username": "",
+        "password": "",
+        "reconnectTimeout": 30000
+    },
+    "objects": [
+
+    ],
+  "instanceObjects": [
+    {
+      "_id":  "info",
+      "type": "channel",
+      "common": {
+        "name": "Information"
+      },
+      "native": {}
+    },
+    {
+      "_id":  "info.connection",
+      "type": "state",
+      "common": {
+        "role":  "indicator.connected",
+        "name":  "If connected to openhab server",
+        "type":  "boolean",
+        "read":  true,
+        "write": false,
+        "def":   false
+      },
+      "native": {}
+    }
+  ]
+}

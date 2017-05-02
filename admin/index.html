@@ -1,0 +1,67 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="../../lib/css/themes/jquery-ui/redmond/jquery-ui.min.css"/>
+<script type="text/javascript" src="../../lib/js/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../../socket.io/socket.io.js"></script>
+<script type="text/javascript" src="../../lib/js/jquery-ui-1.10.3.full.min.js"></script>
+
+<link rel="stylesheet" type="text/css" href="../../css/adapter.css"/>
+<script type="text/javascript" src="../../js/translate.js"></script>
+<script type="text/javascript" src="../../js/adapter-settings.js"></script>
+<script type="text/javascript" src="words.js"></script>
+
+<script type="text/javascript">
+
+    // the function loadSettings has to exist ...
+    function load(settings, onChange) {
+        // example: select elements with id=key and class=value and insert value
+        for (var key in settings) {
+            if (!settings.hasOwnProperty(key)) continue;
+
+            var $value = $('#' + key + '.value');
+            if ($value.attr('type') === 'checkbox') {
+                $value.prop('checked', settings[key]).change(function () {
+					onChange();
+				});
+            } else {
+                $value.val(settings[key]).change(function () {
+					onChange();
+				}).keyup(function () {
+					$(this).trigger('change');
+				});
+            }
+        }
+        onChange(false);
+    }
+
+    function save(callback) {
+        var obj = {};
+        $('.value').each(function () {
+            var $this = $(this);
+            if ($this.attr('type') === 'checkbox') {
+                obj[$this.attr('id')] = $this.prop('checked');
+            } else {
+                obj[$this.attr('id')] = $this.val();
+            }
+        });
+        callback(obj);
+    }
+</script>
+</head>
+<body>
+<div id="adapter-container">
+
+    <table><tr>
+        <td><img src="openhab.png"/></td>
+        <td><h3 class="translate">OpenHAB adapter settings</h3></td>
+    </tr></table>
+    <table style="width: 100%">
+        <tr><td><label class="translate" for="url">Rest API URL:</label></td><td class="admin-icon"></td><td><input class="value" id="url" style="width: 100%"/></td></tr>
+        <tr><td><label class="translate" for="username">Username:</label></td><td class="admin-icon"></td><td><input class="value" id="username"  style="width: 100%"/></td></tr>
+        <tr><td><label class="translate" for="password">Password:</label></td><td class="admin-icon"></td><td><input class="value" type="password" id="password"  style="width: 100%"/></td></tr>
+        <tr><td></td><td></td><td></td></tr>
+        <tr><td><label class="translate" for="reconnectTimeout">Reconnect timeout(ms):</label></td><td class="admin-icon"></td><td><input class="value" id="reconnectTimeout" style="width: 100%"/></td></tr>
+    </table>
+</div>
+</body>
+</html>
