@@ -14,6 +14,8 @@ var utils   = require(__dirname + '/lib/utils'); // Get common adapter utils
 var request = require('request');
 var adapter = utils.adapter('openhab');
 var ohTypes = require(__dirname + '/lib/types.js');
+var rooms   = require(__dirname + '/lib/rooms.js');
+var funcs   = require(__dirname + '/lib/functions.js');
 var client;
 var objects = {};
 var states  = [];
@@ -157,6 +159,7 @@ function syncObjects(objs, callback) {
         }
     });
 }
+
 
 function syncStates(_states, callback) {
     if (!_states || !_states.length) {
@@ -486,11 +489,21 @@ function connect(callback) {
                 var id;
                 for (var i = 0; i < items.length; i++) {
                     if (items[i].type === 'Group') {
+                        var groupId = 'enum.openhab.' + items[i].name;
+
+                        if ((items[i].label && rooms.indexOf(items[i].label.toLowerCase()) !== -1) || (items[i].name && rooms.indexOf(items[i].name.toLowerCase()) !== -1)) {
+                            groupId = 'enum.rooms.' + items[i].name;
+                        } else
+                        if ((items[i].label && funcs.indexOf(items[i].label.toLowerCase()) !== -1) || (items[i].name && funcs.indexOf(items[i].name.toLowerCase()) !== -1)) {
+                            groupId = 'enum.functions.' + items[i].name;
+                        }
+
                         if (enums[items[i].name]) {
                             enums[items[i].name].common.name = items[i].label;
+                            enums[items[i].name]._id = groupId;
                         } else {
                             enums[items[i].name] = {
-                                _id: 'enum.openhab.' + items[i].name,
+                                _id: groupId,
                                 common: {
                                     name: items[i].label,
                                     members: []
@@ -534,7 +547,7 @@ function connect(callback) {
                                     };
                                     objs.push(enums[group]);
                                 }
-                                enums[group].common.members.push(adapter.namespace + '.' + items[i].name);
+                                enums[group].common.members.push(id);
                             }
                         }
 
@@ -542,7 +555,6 @@ function connect(callback) {
                             if (items[i].state === 'ON' || items[i].state === 'closed') items[i].state = true;
                             if (items[i].state === 'OFF' || items[i].state === 'open') items[i].state = false;
                             if (parseFloat(items[i].state).toString() === items[i].state.toString()) items[i].state = parseFloat(items[i].state);
-                            
 
                             _states.push({
                                 _id: id,
