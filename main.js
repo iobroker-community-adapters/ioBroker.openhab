@@ -10,12 +10,13 @@
 'use strict';
 
 // you have to require the utils module and call adapter function
-var utils   = require(__dirname + '/lib/utils'); // Get common adapter utils
-var request = require('request');
-var adapter = utils.adapter('openhab');
-var ohTypes = require(__dirname + '/lib/types.js');
-var rooms   = require(__dirname + '/lib/rooms.js');
-var funcs   = require(__dirname + '/lib/functions.js');
+var utils       = require(__dirname + '/lib/utils'); // Get common adapter utils
+var request     = require('request');
+var adapter     = utils.adapter('openhab');
+var ohTypes     = require(__dirname + '/lib/types.js');
+var rooms       = require(__dirname + '/lib/rooms.js');
+var funcs       = require(__dirname + '/lib/functions.js');
+var EventSource = require('eventsource');
 var client;
 var objects = {};
 var states  = [];
@@ -23,6 +24,7 @@ var connected = false;
 var getUrl;
 var credentials;
 var connectingTimeout = null;
+var es;
 
 // is called when adapter shuts down - callback has to be called under any circumstances!
 adapter.on('unload', function (callback) {
@@ -71,11 +73,10 @@ adapter.on('stateChange', function (id, state) {
                         }
                     }
 
-                    var link = getUrl + 'api/device/' + objects[id].native.control.deviceId + '/' + objects[id].native.control.action + '?' + objects[id].native.name + '=' + state.val;
-                    adapter.log.debug('http://' + link);
+                    var link = adapter.config.url + '/items/' + objects[id].native.name;
+                    adapter.log.debug(link);
 
-
-                    request('http://' + credentials + link, function (err, res, body) {
+                    request(link, function (err, res, body) {
                         if (err || res.statusCode !== 200) {
                             adapter.log.warn('Cannot write "' + id + '": ' + (body || err || res.statusCode));
                             adapter.setForeignState(id, {val: state.val, ack: true, q: 0x40});
@@ -566,7 +567,51 @@ function connect(callback) {
 
                 syncObjects(objs, function () {
                     syncStates(_states, callback);
-                })
+
+                    es = new EventSource(adapter.config.url + '/events');
+                    es.addEventListener('message', function (eventPayload) {
+                        var event = JSON.parse(eventPayload.data);
+                        if (event.type === 'ItemStateEvent') {
+                            // smarthome/items/GEG_HZ_Soll/state
+                            var parts = event.topic.split('/');
+                            var topic = parts[2];
+
+                            var value = JSON.parse(event.payload);
+                            if (value.type === 'DecimalType') {
+                                value.value = parseInt(value.value, 10);
+                            } else if (value.type === 'OnOffType') {
+                                value.value = value.value === 'ON';
+                            } else if (value.type === 'PercentType') {
+                                value.value = parseFloat(value.value);
+                            } else if (value.type === 'StringType') {
+                                // do nothing
+                            } else if (value.type === 'DateTimeType') {
+                                // do nothing
+                                // 2017-05-05T03:28:00.000+0000
+
+                            } else if (value.type === 'HSBType') {
+                                // do nothing
+                                // 336,17,37
+
+                            } else {
+                                adapter.log.warn('Unknown type: ' + JSON.stringify(value));
+                            }
+
+                            adapter.log.debug('Received [' + adapter.namespace + '.items.' + topic + '] = ' + JSON.stringify(value));
+                            adapter.setState(adapter.namespace + '.items.' + topic, value.value, true);
+                        }
+                    });
+
+                    es.onerror = function (err) {
+                        if (err) {
+                            if (err.status === 401 || err.status === 403) {
+                                adapter.log.error('not authorized');
+                            } else {
+                                adapter.log.error(err);
+                            }
+                        }
+                    };
+                });
             } catch (e) {
                 updateConnected(false);
                 adapter.log.error('Invalid answer on "' + adapter.config.url + '/items?recursive=false": cannot parse response');
@@ -587,6 +632,10 @@ function updateConnected(isConnected) {
         connected = isConnected;
         adapter.setState('info.connection', connected, true);
         adapter.log.info(isConnected ? 'connected' : 'disconnected');
+        if (!isConnected) {
+            es.close();
+            es = null;
+        }
     }
 }
 

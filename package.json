@@ -25,7 +25,8 @@
     "url": "https://github.com/ioBroker/ioBroker.openhab"
   },
   "dependencies": {
-    "request": "^2.81.0"
+    "request": "^2.81.0",
+    "eventsource": "^1.0.0"
   },
   "devDependencies": {
       "grunt": "^0.4.5",
