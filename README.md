@@ -7,7 +7,7 @@ This adapter connects ioBroker with [openhab](http://openhab.org/).
 It exports devices and groups from openhab and then monitors updates of variables.
 
 ## Changelog
-### 0.1.0 (2017.05.02)
+### 0.1.0 (2017.05.09)
 * (bluefox) initial release
 
 ## License

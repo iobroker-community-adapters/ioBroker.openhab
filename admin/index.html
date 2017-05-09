@@ -12,11 +12,32 @@
 
 <script type="text/javascript">
 
+    function encrypt(key, value) {
+        var result = '';
+        for(var i = 0; i < value.length; i++) {
+            result += String.fromCharCode(key[i % key.length].charCodeAt(0) ^ value.charCodeAt(i));
+        }
+        return result;
+    }
+    function decrypt(key, value) {
+        var result = '';
+        for(var i = 0; i < value.length; i++) {
+            result += String.fromCharCode(key[i % key.length].charCodeAt(0) ^ value.charCodeAt(i));
+        }
+        return result;
+    }
+
     // the function loadSettings has to exist ...
     function load(settings, onChange) {
-        // example: select elements with id=key and class=value and insert value
+        systemConfig.native = systemConfig.native || {};
+        systemConfig.native.secret = systemConfig.native.secret || 'Zgfr56gFe87jJOM';
+
         for (var key in settings) {
             if (!settings.hasOwnProperty(key)) continue;
+
+            if (key === 'password') {
+                settings.password = decrypt(atob(systemConfig.native.secret), settings.password);
+            }
 
             var $value = $('#' + key + '.value');
             if ($value.attr('type') === 'checkbox') {
@@ -38,10 +59,11 @@
         var obj = {};
         $('.value').each(function () {
             var $this = $(this);
+            var id = $this.attr('id');
             if ($this.attr('type') === 'checkbox') {
-                obj[$this.attr('id')] = $this.prop('checked');
+                obj[id] = $this.prop('checked');
             } else {
-                obj[$this.attr('id')] = $this.val();
+                obj[id] = (id === 'password') ? btoa(encrypt(systemConfig.native.secret, $this.val())) : $this.val();
             }
         });
         callback(obj);
