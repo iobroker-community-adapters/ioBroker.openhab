@@ -21,8 +21,6 @@ var client;
 var objects = {};
 var states  = [];
 var connected = false;
-var getUrl;
-var credentials;
 var connectingTimeout = null;
 var es;
 
@@ -39,25 +37,23 @@ adapter.on('unload', function (callback) {
     }
 });
 
+function oh2iob(type, val) {
+    if (val === 'ON' || val === 'closed') return true;
+    if (val === 'OFF' || val === 'NULL' || val === 'open')return false;
+    var f = parseFloat(val);
+    if (f.toString() === val.toString()) return f;
+    return val;
+}
+
 // is called if a subscribed state changes
 adapter.on('stateChange', function (id, state) {
     if (state && !state.ack) {
         if (objects[id]) {
-            if (objects[id].common.write && objects[id].native.control && objects[id].native.control.action) {
+            if (objects[id].common.write && objects[id].native.name) {
                 states[id] = state.val;
                 if (!connected) {
                     adapter.log.warn('Cannot control: no connection to openhab "' + adapter.config.host + '"');
                 } else {
-                    /*client.emit('call', {
-                        id: id,
-                        action: objects[id].native.control.action,
-                        params: {
-                            deviceId: objects[id].native.control.deviceId,
-                            name: objects[id].native.name,
-                            type: objects[id].common.type,
-                            valueOrExpression: state.val
-                        }
-                    });*/
                     // convert values
                     if (objects[id].common.type === 'boolean') {
                         state.val = (state.val === true || state.val === 'true' || state.val === '1' || state.val === 1 || state.val === 'on' || state.val === 'ON');
@@ -72,28 +68,26 @@ adapter.on('stateChange', function (id, state) {
                             }
                         }
                     }
+                    var originalVal = state.val;
+                    if (objects[id].native.type) {
+                        if (objects[id].native.type === 'Switch') {
+                            state.val = state.val ? 'ON' : 'OFF';
+                        }
+                    }
 
                     var link = adapter.config.url + '/items/' + objects[id].native.name;
                     adapter.log.debug(link);
 
-                    request(link, function (err, res, body) {
+                    request.post({
+                        headers: {'content-type' : 'text/plain'},
+                        url: link,
+                        body: state.val
+                    }, function (err, res, body) {
                         if (err || res.statusCode !== 200) {
                             adapter.log.warn('Cannot write "' + id + '": ' + (body || err || res.statusCode));
-                            adapter.setForeignState(id, {val: state.val, ack: true, q: 0x40});
+                            adapter.setForeignState(id, {val: originalVal, ack: true, q: 0x40});
                         } else {
-                            try {
-                                var data = JSON.parse(body);
-                                if (data.success) {
-                                    adapter.log.debug(body);
-                                    // the value will be updated in deviceAttributeChanged
-                                } else {
-                                    adapter.log.warn('Cannot write "' + id + '": ' + body);
-                                    adapter.setForeignState(id, {val: state.val, ack: true, q: 0x40});
-                                }
-                            } catch (e) {
-                                adapter.log.warn('Cannot write "' + id + '": ' + body);
-                                adapter.setForeignState(id, {val: state.val, ack: true, q: 0x40});
-                            }
+                            adapter.setForeignState(id, {val: originalVal, ack: true, q: 0x0});
                         }
                     });
                 }
@@ -193,7 +187,7 @@ function syncStates(_states, callback) {
         }
     });
 }
-
+/*
 function syncDevices(devices, callback) {
     var objs = [];
     var _states = [];
@@ -416,67 +410,7 @@ function syncGroups(groups, ids, callback) {
     }
     syncObjects(enums, callback);
 }
-
-/*
-function processResponse(text, type, callback) {
-    try {
-        var data = JSON.parse(text);
-        if (data.success) {
-            callback && callback(null, data[type]);
-        } else {
-            callback && callback(data.error || !data.success);
-        }
-    } catch (e) {
-        adapter.log.error('Cannot parse answer (' + type + ') from openhab: ' + e);
-        callback && callback(e);
-    }
-}
-
-function getData(type, callback) {
-    if (process.env.DEVELOPMENT) {
-        processResponse(require('fs').readFileSync(__dirname + '/test/data/' + type + '.json'), type, callback);
-    } else {
-        request({
-            url : 'http://' + encodeURIComponent(adapter.config.username) + ':' + encodeURIComponent(adapter.config.password) + '@' + adapter.config.host + (adapter.config.port ? ':' + adapter.config.port : '') + '/api/' + type
-        }, function (err, resp, body) {
-            if (body) {
-                processResponse(body, type, callback);
-            } else {
-                adapter.log.error('Cannot read ' + type + ' from "' + adapter.config.host + '": ' + err);
-            }
-        });
-    }
-}
-
-function syncAll(callback) {
-    getData('devices', function (err, devices) {
-        if (err) {
-            // try later
-            callback && callback(err);
-            return;
-        }
-        syncDevices(devices, function (ids) {
-            // redundant information
-            //getData('variables', function (err, variables) {
-                //if (err) {
-                    // try later
-                //    callback && callback(err);
-                ///    return;
-                //}
-                getData('groups', function (err, groups) {
-                    if (err) {
-                        // try later
-                        callback && callback(err);
-                        ids = null;
-                    } else {
-                        syncGroups(groups, ids, callback);
-                    }
-                });
-            //});
-        });
-    });
-}*/
-
+*/
 function connect(callback) {
     connectingTimeout = null;
     request(adapter.config.url + '/items?recursive=false', function (err, resp, body) {
@@ -528,7 +462,8 @@ function connect(callback) {
                             _id: id,
                             common: common,
                             native: {
-                                name: items[i].name
+                                name: items[i].name,
+                                type: items[i].type
                             },
                             type: 'state'
                         });
@@ -552,14 +487,10 @@ function connect(callback) {
                             }
                         }
 
-                        if (items[i].state !== 'undefined') {
-                            if (items[i].state === 'ON' || items[i].state === 'closed') items[i].state = true;
-                            if (items[i].state === 'OFF' || items[i].state === 'open') items[i].state = false;
-                            if (parseFloat(items[i].state).toString() === items[i].state.toString()) items[i].state = parseFloat(items[i].state);
-
+                        if (typeof items[i].state !== 'undefined' && items[i].state !== 'undefined') {
                             _states.push({
                                 _id: id,
-                                val: {val: items[i].state, ack: true}
+                                val: {val: oh2iob(items[i].type, items[i].state), ack: true}
                             });
                         }
                     }
@@ -607,7 +538,7 @@ function connect(callback) {
                             if (err.status === 401 || err.status === 403) {
                                 adapter.log.error('not authorized');
                             } else {
-                                adapter.log.error(err);
+                                adapter.log.error(JSON.stringify(err));
                             }
                         }
                     };
@@ -638,102 +569,6 @@ function updateConnected(isConnected) {
         }
     }
 }
-
-/* function connect() {
-    url = url || 'http://'  + adapter.config.host + (adapter.config.port ? ':' + adapter.config.port : '') + '/?username=' + encodeURIComponent(adapter.config.username) + '&password=';
-    credentials = credentials || encodeURIComponent(adapter.config.username) + ':' + encodeURIComponent(adapter.config.password);
-    getUrl = getUrl || '@' + adapter.config.host + (adapter.config.port ? ':' + adapter.config.port : '') + '/';
-    adapter.log.debug('Connect: ' + url + 'xxx');
-    client = io.connect(url + encodeURIComponent(adapter.config.password), {
-        reconnection: true,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 3000,
-        timeout: 20000,
-        forceNew: true
-    });
-    client.on('connect', function() {
-        updateConnected(true);
-    });
-
-    client.on('event', function (data) {
-        adapter.log.debug(data);
-    });
-
-    client.on('disconnect', function (data) {
-        updateConnected(false);
-    });
-
-    client.on('devices', function (devices) {
-        updateConnected(true);
-        syncDevices(devices);
-    });
-
-    client.on('rules', function (rules) {
-        //adapter.log.debug('Rules ' + JSON.stringify(rules));
-    });
-
-    client.on('variables', function (variables) {
-        var _states = [];
-        for (var s = 0; s < variables.length; s++) {
-            if (variables[s].value !== undefined && variables[s].value !== null) {
-                var state = {
-                    _id: adapter.namespace + '.devices.' + variables[s].name.replace(/\s/g, '_'),
-                    val: {
-                        val: variables[s].value,
-                        ack: true
-                    }
-                };
-                if (objects[state._id]) {
-                    if (objects[state._id].native && objects[state._id].native.mapping) {
-                        if (objects[state._id].native.mapping[variables[s].value] !== undefined) {
-                            state.val.val = objects[state._id].native.mapping[variables[s].value];
-                        }
-                    }
-                    _states.push(state);
-                } else {
-                    adapter.log.warn('Unknown state: ' + state._id);
-                }
-            }
-        }
-        syncStates(_states);
-    });
-
-    client.on('pages', function (pages) {
-        //adapter.log.debug('pages ' + JSON.stringify(pages));
-    });
-
-    client.on('groups', function (groups) {
-        updateConnected(true);
-        var ids = [];
-        for (var id in objects) {
-            ids.push(id);
-        }
-        syncGroups(groups, ids);
-    });
-
-    client.on('deviceAttributeChanged', function (attrEvent) {
-        if (!attrEvent.deviceId || !attrEvent.attributeName) {
-            adapter.log.warn('Received invalid event: ' + JSON.stringify(attrEvent));
-            return;
-        }
-        var name = attrEvent.deviceId.replace(/\s/g, '_') + '.' + attrEvent.attributeName.replace(/\s/g, '_');
-        adapter.log.debug('update for "' + name + '": ' + JSON.stringify(attrEvent));
-        
-        //{deviceId: device.id, attributeName, time: time.getTime(), value}
-        var id = adapter.namespace + '.devices.' + name;
-        if (objects[id]) {
-            adapter.setForeignState(id, {val: attrEvent.value, ts: attrEvent.time, ack: true});
-        } else {
-            adapter.log.warn('Received update for unknown state: ' + JSON.stringify(attrEvent));
-        }
-    });
-
-    client.on('callResult', function (msg) {
-        if (objects[msg.id]) {
-            adapter.setForeignState(msg.id, states[msg.id].val, true);
-        }
-    });
-}*/
 
 function main() {
     if (adapter.config.url) {
