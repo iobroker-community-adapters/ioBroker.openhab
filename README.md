@@ -6,6 +6,12 @@ This adapter connects ioBroker with [openhab](http://openhab.org/).
 
 It exports devices and groups from openhab and then monitors updates of variables.
 
+## Todo
+- New devices detect synonymous without adapter restart?
+- At the moment only items view / switchable, can also the "things" be read
+- Items deleted from OpenHab do not disappear in iObroker
+- If no connection with openhab, spam in the log and nothing saying error: error   {"type":"error"}
+
 ## Changelog
 ### 0.1.0 (2017.05.09)
 * (bluefox) initial release
