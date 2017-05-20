@@ -1,9 +1,14 @@
 {
     "common": {
         "name":                     "openhab",
-        "version":                  "0.1.0",
+        "version":                  "0.1.1",
 	    "news": {
-			"0.1.0": {
+			"0.1.1": {
+			  "en": "initial adapter",
+			  "de": "Initiale Version",
+			  "ru": "Первоначальный адаптер"
+			},
+            "0.1.0": {
 			  "en": "initial adapter",
 			  "de": "Initiale Version",
 			  "ru": "Первоначальный адаптер"
@@ -16,6 +21,8 @@
 				 "ru": "ioBroker openhab драйвер"
 		},
         "platform":                 "Javascript/Node.js",
+		"localLink":                "%protocol%://%host%:%port%/",
+		"welcomeScreen": 			{"link": "habpanel/index.html", "name": "HABpanel", "img": "habpanel.admin/habpanel.png", "color": "black", "order": 3},
         "mode":                     "daemon",
         "icon":                     "openhab.png",
         "enabled":                  false,
@@ -26,7 +33,10 @@
         "type":                     "iot-system"
     },
     "native": {
-        "url": "http://demo.openhab.org:8080/rest",
+        "host": "demo.openhab.org",
+		"port": 8080,
+		"protocol": "http",
+		"path": "/rest",
         "username": "",
         "password": "",
         "reconnectTimeout": 30000

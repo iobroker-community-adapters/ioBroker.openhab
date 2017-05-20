@@ -10,9 +10,11 @@ It exports devices and groups from openhab and then monitors updates of variable
 - New devices detect synonymous without adapter restart?
 - At the moment only items view / switchable, can also the "things" be read
 - Items deleted from OpenHab do not disappear in iObroker
-- If no connection with openhab, spam in the log and nothing saying error: error   {"type":"error"}
 
 ## Changelog
+### 0.1.1 (2017.05.20)
+* (bluefox) change settings
+
 ### 0.1.0 (2017.05.09)
 * (bluefox) initial release
 

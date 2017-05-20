@@ -32,6 +32,17 @@
         systemConfig.native = systemConfig.native || {};
         systemConfig.native.secret = systemConfig.native.secret || 'Zgfr56gFe87jJOM';
 
+        if (settings.url) {
+            settings.protocol = settings.url.match(/^https:/) ? 'https' : 'http';
+            var url = settings.url.replace('https://', '').replace('http://', '');
+            var parts = url.split('/');
+            settings.path = '/' + (parts[1] || '');
+            parts = parts[0].split(':');
+            settings.host = parts[0];
+            settings.port = parts[1] || 80;
+            delete settings.url;
+        }
+
         for (var key in settings) {
             if (!settings.hasOwnProperty(key)) continue;
 
@@ -66,6 +77,7 @@
                 obj[id] = (id === 'password') ? btoa(encrypt(systemConfig.native.secret, $this.val())) : $this.val();
             }
         });
+        obj.url = '';
         callback(obj);
     }
 </script>
@@ -78,7 +90,10 @@
         <td><h3 class="translate">OpenHAB adapter settings</h3></td>
     </tr></table>
     <table style="width: 100%">
-        <tr><td style="width: 200px"><label class="translate" for="url">Rest API URL:</label></td><td class="admin-icon"></td><td><input class="value" id="url" style="width: 100%"/></td></tr>
+        <tr><td style="width: 200px"><label class="translate" for="host">OpenHAB IP:</label></td><td class="admin-icon"></td><td><input class="value" id="host" style="width: 100%"/></td></tr>
+        <tr><td style="width: 200px"><label class="translate" for="port">OpenHAB Port:</label></td><td class="admin-icon"></td><td><input class="value" id="port" type="number" style="width: 60px"/></td></tr>
+        <tr><td style="width: 200px"><label class="translate" for="protocol">OpenHAB protocol:</label></td><td class="admin-icon"></td><td><select style="width: 60px" class="value" id="protocol"><option value="http">http</option><option value="https">https</option></select></td></tr>
+        <tr><td style="width: 200px"><label class="translate" for="path">OpenHAB path:</label></td><td class="admin-icon"></td><td><input class="value" id="path"  style="width: 100%"/></td></tr>
         <tr><td><label class="translate" for="username">Username:</label></td><td class="admin-icon"></td><td><input class="value" id="username"  style="width: 100%"/></td></tr>
         <tr><td><label class="translate" for="password">Password:</label></td><td class="admin-icon"></td><td><input class="value" type="password" id="password"  style="width: 100%"/></td></tr>
         <tr><td></td><td></td><td></td></tr>
