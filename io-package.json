@@ -1,9 +1,9 @@
 {
     "common": {
         "name":                     "openhab",
-        "version":                  "0.1.1",
+        "version":                  "0.1.2",
 	    "news": {
-			"0.1.1": {
+			"0.1.2": {
 			  "en": "initial adapter",
 			  "de": "Initiale Version",
 			  "ru": "Первоначальный адаптер"
@@ -22,7 +22,6 @@
 		},
         "platform":                 "Javascript/Node.js",
 		"localLink":                "%protocol%://%host%:%port%/",
-		"welcomeScreen": 			{"link": "habpanel/index.html", "name": "HABpanel", "img": "habpanel.admin/habpanel.png", "color": "black", "order": 3},
         "mode":                     "daemon",
         "icon":                     "openhab.png",
         "enabled":                  false,
