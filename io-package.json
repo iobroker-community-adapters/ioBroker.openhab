@@ -1,12 +1,12 @@
 {
     "common": {
         "name":                     "openhab",
-        "version":                  "0.1.2",
+        "version":                  "0.1.3",
 	    "news": {
-			"0.1.2": {
-			  "en": "initial adapter",
-			  "de": "Initiale Version",
-			  "ru": "Первоначальный адаптер"
+			"0.1.3": {
+			  "en": "change settings",
+			  "de": "Einstellungen sind geändert",
+			  "ru": "Изменены настройки"
 			},
             "0.1.0": {
 			  "en": "initial adapter",

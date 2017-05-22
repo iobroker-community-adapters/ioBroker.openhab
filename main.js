@@ -77,11 +77,11 @@ adapter.on('stateChange', function (id, state) {
                         }
                     }
 
-                    var link = adapter.config.url + '/items/' + objects[id].native.name;
+                    var link = URL + '/items/' + objects[id].native.name;
                     adapter.log.debug(link);
 
                     request.post({
-                        headers: {'content-type' : 'text/plain'},
+                        headers: {'content-type': 'text/plain'},
                         url: link,
                         body: state.val
                     }, function (err, res, body) {
