@@ -29,7 +29,7 @@
 		"keywords":                 ["openhab"],
         "readme":                   "https://github.com/ioBroker/ioBroker.openhab/blob/master/README.md",
 		"loglevel":                 "info",
-        "type":                     "iot-system"
+        "type":                     "iot-systems"
     },
     "native": {
         "host": "demo.openhab.org",
