@@ -1,8 +1,13 @@
 {
     "common": {
         "name":                     "openhab",
-        "version":                  "0.1.3",
+        "version":                  "0.1.4",
 	    "news": {
+            "0.1.4": {
+              "en": "allow control of dimmer",
+              "de": "Dimmer ist erlaubt",
+              "ru": "Диммер должен работать"
+            },
 			"0.1.3": {
 			  "en": "change settings",
 			  "de": "Einstellungen sind geändert",

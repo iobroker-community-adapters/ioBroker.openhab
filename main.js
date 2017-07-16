@@ -80,10 +80,14 @@ adapter.on('stateChange', function (id, state) {
                     var link = URL + '/items/' + objects[id].native.name;
                     adapter.log.debug(link);
 
+                    if (state.val === null || state.val === undefined) {
+                        state.val = '';
+                    }
+
                     request.post({
                         headers: {'content-type': 'text/plain'},
                         url: link,
-                        body: state.val
+                        body: state.val.toString()
                     }, function (err, res, body) {
                         if (err || res.statusCode !== 200) {
                             adapter.log.warn('Cannot write "' + id + '": ' + (body || err || res.statusCode));
