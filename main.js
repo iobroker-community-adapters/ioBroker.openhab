@@ -566,19 +566,19 @@ function connect(callback) {
                             var topic = parts[2];
 
                             var value = JSON.parse(event.payload);
-                            if (value.type === 'DecimalType') {
+                            if (value.type === 'DecimalType' || value.type === 'Decimal') {
                                 value.value = parseInt(value.value, 10);
-                            } else if (value.type === 'OnOffType') {
+                            } else if (value.type === 'OnOffType' || value.type === 'OnOff') {
                                 value.value = value.value === 'ON';
-                            } else if (value.type === 'PercentType') {
+                            } else if (value.type === 'PercentType' || value.type === 'Percent') {
                                 value.value = parseFloat(value.value);
-                            } else if (value.type === 'StringType') {
+                            } else if (value.type === 'StringType' || value.type === 'String') {
                                 // do nothing
-                            } else if (value.type === 'DateTimeType') {
+                            } else if (value.type === 'DateTimeType' || value.type === 'DateTime') {
                                 // do nothing
                                 // 2017-05-05T03:28:00.000+0000
 
-                            } else if (value.type === 'HSBType') {
+                            } else if (value.type === 'HSBType' || value.type === 'HSB') {
                                 // do nothing
                                 // 336,17,37
 

@@ -12,6 +12,9 @@ It exports devices and groups from openhab and then monitors updates of variable
 - Items deleted from OpenHab do not disappear in iObroker
 
 ## Changelog
+### 0.1.5 (2017.08.15)
+* (bluefox) changed the value types for openHAB
+
 ### 0.1.4 (2017.07.16)
 * (bluefox) allow control of dimmer
 

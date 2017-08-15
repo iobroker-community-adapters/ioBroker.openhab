@@ -1,8 +1,13 @@
 {
     "common": {
         "name":                     "openhab",
-        "version":                  "0.1.4",
+        "version":                  "0.1.5",
 	    "news": {
+            "0.1.5": {
+              "en": "changed types for openHAB",
+              "de": "Die Typennamen wurden geändert",
+              "ru": "Изменены имена типов"
+            },
             "0.1.4": {
               "en": "allow control of dimmer",
               "de": "Dimmer ist erlaubt",

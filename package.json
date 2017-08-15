@@ -1,6 +1,6 @@
 {
   "name": "iobroker.openhab",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "ioBroker openhab Adapter",
   "author": {
     "name": "bluefox",
