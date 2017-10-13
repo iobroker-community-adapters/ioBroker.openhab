@@ -1,8 +1,13 @@
 {
     "common": {
         "name":                     "openhab",
-        "version":                  "0.1.5",
+        "version":                  "0.1.6",
 	    "news": {
+            "0.1.6": {
+              "en": "Fix small error by the connection closing",
+              "de": "Korrigiere klein Fehler beim Verbindungsabbruch",
+              "ru": "исправлена маленькая ошибка при закрытии соедиения"
+            },
             "0.1.5": {
               "en": "changed types for openHAB",
               "de": "Die Typennamen wurden geändert",

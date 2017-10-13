@@ -118,11 +118,7 @@ adapter.on('message', function (obj) {
         }
     }
 });
-function btoa(str) {
-    if (Buffer.byteLength(str) !== str.length)
-        throw new Error('bad string!');
-    return Buffer(str, 'binary').toString('base64');
-}
+
 // is called when databases are connected and adapter received configuration.
 // start here!
 adapter.on('ready', function () {
@@ -621,7 +617,7 @@ function updateConnected(isConnected) {
         connected = isConnected;
         adapter.setState('info.connection', connected, true);
         adapter.log.info(isConnected ? 'connected' : 'disconnected');
-        if (!isConnected) {
+        if (!isConnected && es) {
             es.close();
             es = null;
         }

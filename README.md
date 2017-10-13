@@ -12,6 +12,9 @@ It exports devices and groups from openhab and then monitors updates of variable
 - Items deleted from OpenHab do not disappear in iObroker
 
 ## Changelog
+### 0.1.6 (2017.10.13)
+* (bluefox) Fix small error by the connection closing
+
 ### 0.1.5 (2017.08.15)
 * (bluefox) changed the value types for openHAB
 
