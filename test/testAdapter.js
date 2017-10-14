@@ -112,9 +112,10 @@ describe('Test ' + adapterShortName + ' adapter', function() {
                     if (onStateChanged) onStateChanged(id, state);
                 },
                 function (_objects, _states) {
-                    //start pimatic
-                    var data = require('fs').readFileSync(__dirname + '/data/config.json');
-                    require('fs').writeFileSync(__dirname + '/../config.json', data);
+                    var fs = require('fs');
+                    // get test openhab data
+                    var data = fs.readFileSync(__dirname + '/data/config.json');
+                    fs.writeFileSync(__dirname + '/../config.json', data);
                     var fork = require('child_process').fork;
                     pimaticPID = fork(__dirname + '/../node_modules/pimatic/pimatic.js', function (error, stdout, stderr) {
                         if (error) {

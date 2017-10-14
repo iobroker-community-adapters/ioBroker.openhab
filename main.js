@@ -12,7 +12,7 @@
 // you have to require the utils module and call adapter function
 var utils       = require(__dirname + '/lib/utils'); // Get common adapter utils
 var request     = require('request');
-var adapter     = utils.adapter('openhab');
+var adapter     = new utils.Adapter('openhab');
 var ohTypes     = require(__dirname + '/lib/types.js');
 var rooms       = require(__dirname + '/lib/rooms.js');
 var funcs       = require(__dirname + '/lib/functions.js');

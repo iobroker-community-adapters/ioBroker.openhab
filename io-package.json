@@ -1,9 +1,9 @@
 {
     "common": {
         "name":                     "openhab",
-        "version":                  "0.1.6",
+        "version":                  "0.1.7",
 	    "news": {
-            "0.1.6": {
+            "0.1.7": {
               "en": "Fix small error by the connection closing",
               "de": "Korrigiere klein Fehler beim Verbindungsabbruch",
               "ru": "исправлена маленькая ошибка при закрытии соедиения"
