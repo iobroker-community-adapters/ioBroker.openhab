@@ -1,0 +1,101 @@
+{
+  "version": "0.9.0.b5",
+  "links": [
+    {
+      "type": "uuid",
+      "url": "http://localhost:8080/rest/uuid"
+    },
+    {
+      "type": "bindings",
+      "url": "http://localhost:8080/rest/bindings"
+    },
+    {
+      "type": "channel-types",
+      "url": "http://localhost:8080/rest/channel-types"
+    },
+    {
+      "type": "config-descriptions",
+      "url": "http://localhost:8080/rest/config-descriptions"
+    },
+    {
+      "type": "services",
+      "url": "http://localhost:8080/rest/services"
+    },
+    {
+      "type": "discovery",
+      "url": "http://localhost:8080/rest/discovery"
+    },
+    {
+      "type": "extensions",
+      "url": "http://localhost:8080/rest/extensions"
+    },
+    {
+      "type": "inbox",
+      "url": "http://localhost:8080/rest/inbox"
+    },
+    {
+      "type": "links",
+      "url": "http://localhost:8080/rest/links"
+    },
+    {
+      "type": "items",
+      "url": "http://localhost:8080/rest/items"
+    },
+    {
+      "type": "persistence",
+      "url": "http://localhost:8080/rest/persistence"
+    },
+    {
+      "type": "things",
+      "url": "http://localhost:8080/rest/things"
+    },
+    {
+      "type": "thing-types",
+      "url": "http://localhost:8080/rest/thing-types"
+    },
+    {
+      "type": "sitemaps",
+      "url": "http://localhost:8080/rest/sitemaps"
+    },
+    {
+      "type": "voice",
+      "url": "http://localhost:8080/rest/voice"
+    },
+    {
+      "type": "iconsets",
+      "url": "http://localhost:8080/rest/iconsets"
+    },
+    {
+      "type": "module-types",
+      "url": "http://localhost:8080/rest/module-types"
+    },
+    {
+      "type": "rules",
+      "url": "http://localhost:8080/rest/rules"
+    },
+    {
+      "type": "templates",
+      "url": "http://localhost:8080/rest/templates"
+    },
+    {
+      "type": "habmin/charts",
+      "url": "http://localhost:8080/rest/habmin/charts"
+    },
+    {
+      "type": "habmin/dashboards",
+      "url": "http://localhost:8080/rest/habmin/dashboards"
+    },
+    {
+      "type": "habmin/designer",
+      "url": "http://localhost:8080/rest/habmin/designer"
+    },
+    {
+      "type": "habmin/floorplan",
+      "url": "http://localhost:8080/rest/habmin/floorplan"
+    },
+    {
+      "type": "habmin/rules",
+      "url": "http://localhost:8080/rest/habmin/rules"
+    }
+  ]
+}

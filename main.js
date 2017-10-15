@@ -592,14 +592,14 @@ function connect(callback) {
                             if (err.status === 401 || err.status === 403) {
                                 adapter.log.error('not authorized');
                             } else {
-                                adapter.log.debug(JSON.stringify(err));
+                                adapter.log.debug('Error: ' + JSON.stringify(err));
                             }
                         }
                     };
                 });
             } catch (e) {
                 updateConnected(false);
-                adapter.log.error('Invalid answer on "' + URL + '/items?recursive=false": cannot parse response');
+                adapter.log.error('Invalid answer on "' + URL + '/items?recursive=false": cannot parse response: ' + e);
                 connectingTimeout = setTimeout(connect, adapter.config.reconnectTimeout);
                 callback && callback();
             }

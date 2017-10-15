@@ -2,13 +2,14 @@
 /*jslint node: true */
 var expect = require('chai').expect;
 var setup  = require(__dirname + '/lib/setup');
+var OpenHAB = require(__dirname + '/data/openhabServer.js');
 
 var objects = null;
 var states  = null;
 var onStateChanged = null;
 var onObjectChanged = null;
 var sendToID = 1;
-var pimaticPID = null;
+var openHAB = new OpenHAB();
 
 var adapterShortName = setup.adapterName.substring(setup.adapterName.indexOf('.')+1);
 
@@ -34,7 +35,7 @@ function checkConnectionOfAdapter(cb, counter) {
 
 function checkConnection(cb, counter) {
     counter = counter || 0;
-    console.log('Try check pimatic #' + counter);
+    console.log('Try check openHAB #' + counter);
     if (counter > 30) {
         if (cb) cb('Cannot check connection');
         return;
@@ -103,6 +104,7 @@ describe('Test ' + adapterShortName + ' adapter', function() {
             // enable adapter
             config.common.enabled  = true;
             config.common.loglevel = 'debug';
+            config.native.host = 'localhost';
 
             //config.native.dbtype   = 'sqlite';
 
@@ -112,17 +114,6 @@ describe('Test ' + adapterShortName + ' adapter', function() {
                     if (onStateChanged) onStateChanged(id, state);
                 },
                 function (_objects, _states) {
-                    var fs = require('fs');
-                    // get test openhab data
-                    var data = fs.readFileSync(__dirname + '/data/config.json');
-                    fs.writeFileSync(__dirname + '/../config.json', data);
-                    var fork = require('child_process').fork;
-                    pimaticPID = fork(__dirname + '/../node_modules/pimatic/pimatic.js', function (error, stdout, stderr) {
-                        if (error) {
-                            console.error('exec error: ' + error);
-                        }
-                    });
-
                     objects = _objects;
                     states  = _states;
                     _done();
@@ -132,7 +123,7 @@ describe('Test ' + adapterShortName + ' adapter', function() {
 
     it('Test ' + adapterShortName + ' adapter: Check if adapter started', function (done) {
         this.timeout(60000);
-        //wait till pimatic started
+        //wait till openHAB started
         checkConnectionOfAdapter(function (res) {
             if (res) console.log(res);
             expect(res).not.to.be.equal('Cannot check connection');
@@ -143,9 +134,20 @@ describe('Test ' + adapterShortName + ' adapter', function() {
         });
     });
 
+    it('Test ' + adapterShortName + ' adapter: Read items', function (done) {
+        setTimeout(function () {
+            objects.getObject('openhab.0.items.SonosPLAY1Badezimmer_Volume', function (err, obj) {
+                expect(obj).to.be.not.null;
+                expect(typeof obj).to.be.equal('object');
+                expect(obj.type).to.be.equal('state');
+                done();
+            });
+        }, 1000);
+    });
+
     after('Test ' + adapterShortName + ' adapter: Stop js-controller', function (done) {
         this.timeout(10000);
-        if (pimaticPID) pimaticPID.kill();
+        if (openHAB) openHAB.close();
 
         setup.stopController(function (normalTerminated) {
             console.log('Adapter normal terminated: ' + normalTerminated);
