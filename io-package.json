@@ -1,84 +1,90 @@
 {
     "common": {
-        "name":                     "openhab",
-        "version":                  "0.2.0",
-	    "news": {
+        "name": "openhab",
+        "version": "0.2.0",
+        "news": {
             "0.2.0": {
-              "en": "Fix small error by the connection closing",
-              "de": "Korrigiere klein Fehler beim Verbindungsabbruch",
-              "ru": "исправлена маленькая ошибка при закрытии соедиения"
+                "en": "Fix small error by the connection closing",
+                "de": "Korrigiere klein Fehler beim Verbindungsabbruch",
+                "ru": "исправлена маленькая ошибка при закрытии соедиения"
             },
             "0.1.5": {
-              "en": "changed types for openHAB",
-              "de": "Die Typennamen wurden geändert",
-              "ru": "Изменены имена типов"
+                "en": "changed types for openHAB",
+                "de": "Die Typennamen wurden geändert",
+                "ru": "Изменены имена типов"
             },
             "0.1.4": {
-              "en": "allow control of dimmer",
-              "de": "Dimmer ist erlaubt",
-              "ru": "Диммер должен работать"
+                "en": "allow control of dimmer",
+                "de": "Dimmer ist erlaubt",
+                "ru": "Диммер должен работать"
             },
-			"0.1.3": {
-			  "en": "change settings",
-			  "de": "Einstellungen sind geändert",
-			  "ru": "Изменены настройки"
-			},
+            "0.1.3": {
+                "en": "change settings",
+                "de": "Einstellungen sind geändert",
+                "ru": "Изменены настройки"
+            },
             "0.1.0": {
-			  "en": "initial adapter",
-			  "de": "Initiale Version",
-			  "ru": "Первоначальный адаптер"
-			}
-		},
-        "title":                    "openhab adapter",
-        "desc":                     {
-				 "en": "ioBroker openhab Adapter",
-				 "de": "ioBroker openhab Adapter",
-				 "ru": "ioBroker openhab драйвер"
-		},
-        "platform":                 "Javascript/Node.js",
-		"localLink":                "%protocol%://%host%:%port%/",
-        "mode":                     "daemon",
-        "icon":                     "openhab.png",
-        "enabled":                  false,
-		"extIcon":                  "https://raw.githubusercontent.com/ioBroker/ioBroker.openhab/master/admin/openhab.png",
-		"keywords":                 ["openhab"],
-        "readme":                   "https://github.com/ioBroker/ioBroker.openhab/blob/master/README.md",
-		"loglevel":                 "info",
-        "type":                     "iot-systems"
+                "en": "initial adapter",
+                "de": "Initiale Version",
+                "ru": "Первоначальный адаптер"
+            }
+        },
+        "title": "openhab adapter",
+        "desc": {
+            "en": "ioBroker openhab Adapter",
+            "de": "ioBroker openhab Adapter",
+            "ru": "ioBroker openhab драйвер"
+        },
+        "platform": "Javascript/Node.js",
+        "localLink": "%protocol%://%host%:%port%/",
+        "mode": "daemon",
+        "icon": "openhab.png",
+        "enabled": false,
+        "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.openhab/master/admin/openhab.png",
+        "keywords": [
+            "openhab"
+        ],
+        "readme": "https://github.com/ioBroker/ioBroker.openhab/blob/master/README.md",
+        "loglevel": "info",
+        "type": "iot-systems",
+        "authors": [
+            {
+                "name": "bluefox",
+                "email": "dogafox@gmail.com"
+            }
+        ]
     },
     "native": {
         "host": "demo.openhab.org",
-		"port": 8080,
-		"protocol": "http",
-		"path": "/rest",
+        "port": 8080,
+        "protocol": "http",
+        "path": "/rest",
         "username": "",
         "password": "",
         "reconnectTimeout": 30000
     },
-    "objects": [
-
-    ],
-  "instanceObjects": [
-    {
-      "_id":  "info",
-      "type": "channel",
-      "common": {
-        "name": "Information"
-      },
-      "native": {}
-    },
-    {
-      "_id":  "info.connection",
-      "type": "state",
-      "common": {
-        "role":  "indicator.connected",
-        "name":  "If connected to openhab server",
-        "type":  "boolean",
-        "read":  true,
-        "write": false,
-        "def":   false
-      },
-      "native": {}
-    }
-  ]
+    "objects": [],
+    "instanceObjects": [
+        {
+            "_id": "info",
+            "type": "channel",
+            "common": {
+                "name": "Information"
+            },
+            "native": {}
+        },
+        {
+            "_id": "info.connection",
+            "type": "state",
+            "common": {
+                "role": "indicator.connected",
+                "name": "If connected to openhab server",
+                "type": "boolean",
+                "read": true,
+                "write": false,
+                "def": false
+            },
+            "native": {}
+        }
+    ]
 }
