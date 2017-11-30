@@ -1,8 +1,13 @@
 {
     "common": {
         "name": "openhab",
-        "version": "0.2.0",
+        "version": "0.2.1",
         "news": {
+            "0.2.1": {
+                "en": "Fix decimal types",
+                "de": "Korrigiere Dezimaltypen",
+                "ru": "исправлена ошибка с числами"
+            },
             "0.2.0": {
                 "en": "Fix small error by the connection closing",
                 "de": "Korrigiere klein Fehler beim Verbindungsabbruch",

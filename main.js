@@ -563,7 +563,7 @@ function connect(callback) {
 
                             var value = JSON.parse(event.payload);
                             if (value.type === 'DecimalType' || value.type === 'Decimal') {
-                                value.value = parseInt(value.value, 10);
+                                value.value = parseFloat(value.value);
                             } else if (value.type === 'OnOffType' || value.type === 'OnOff') {
                                 value.value = value.value === 'ON';
                             } else if (value.type === 'PercentType' || value.type === 'Percent') {
