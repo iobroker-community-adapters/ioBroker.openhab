@@ -40,11 +40,41 @@ adapter.on('unload', function (callback) {
 });
 
 function oh2iob(type, val) {
-    if (val === 'ON' || val === 'closed') return true;
-    if (val === 'OFF' || val === 'NULL' || val === 'open')return false;
-    var f = parseFloat(val);
-    if (f.toString() === val.toString()) return f;
-    return val;
+    type = type.toLowerCase(); // get rid of capital letters. Makes it easy to parse.
+
+    if (type === 'booleantype' || type === 'boolean') {
+        return (val === true || val === 'true' || val === '1' || val === 1 || val === 'on' || val === 'ON')
+    } else if (type === 'decimaltype' || type === 'decimal' || type === 'number' || type === 'dimmer' || type === 'rollershutter') {
+        return parseFloat((val || '0').toString().replace(',', '.'));
+    } else if (type === 'onofftype' || type === 'onoff' || type === 'switch') {
+        return (val === 'ON' || val === 'on');
+    } else if (type === 'openclosedtype' || type === 'openclosed' || type === 'contact') {
+        return (val === 'OPEN' || val === 'open');
+    }  else if (type === 'percenttype' || type === 'percent') {
+        return parseFloat(val);
+    } else if (type === 'stringtype' || type === 'string' || type === 'location') {
+        // only workaround for Openhab window handle (tri state)
+        if (val === 'OPEN') {
+            return 'open';
+        } else if (val === 'CLOSED') {
+            return 'closed';
+        } else if (val === 'AJAR') {
+            return 'tilt';
+        } else {
+            return val;
+        }
+    } else if (type === 'datetimetype' || type === 'datetime') {
+        // do nothing
+        // 2017-05-05T03:28:00.000+0000
+        return val;
+    } else if (type === 'hsbtype' || type === 'hsb') {
+        // do nothing
+        // 336,17,37
+        return val;
+    } else {
+        adapter.log.warn('oh2iob - Unknown type: ' + type);
+        return val;
+    }
 }
 
 // is called if a subscribed state changes
@@ -56,26 +86,12 @@ adapter.on('stateChange', function (id, state) {
                 if (!connected) {
                     adapter.log.warn('Cannot control: no connection to openhab "' + adapter.config.host + '"');
                 } else {
+                    adapter.log.debug('Type = ' + objects[id].common.type);
+
                     // convert values
-                    if (objects[id].common.type === 'boolean') {
-                        state.val = (state.val === true || state.val === 'true' || state.val === '1' || state.val === 1 || state.val === 'on' || state.val === 'ON');
-                    } else if (objects[id].common.type === 'number') {
-                        if (typeof state.val !== 'number') {
-                            if (state.val === true || state.val === 'true' || state.val === 'on' || state.val === 'ON') {
-                                state.val = 1;
-                            } else if (state.val === false || state.val === 'false' || state.val === 'off' || state.val === 'OFF') {
-                                state.val = 0;
-                            } else {
-                                state.val = parseFloat((state.val || '0').toString().replace(',', '.'));
-                            }
-                        }
-                    }
+                    state.val = oh2iob(state.type, state.val);
+
                     var originalVal = state.val;
-                    if (objects[id].native.type) {
-                        if (objects[id].native.type === 'Switch') {
-                            state.val = state.val ? 'ON' : 'OFF';
-                        }
-                    }
 
                     var link = URL + '/items/' + objects[id].native.name;
                     adapter.log.debug(link);
@@ -562,25 +578,7 @@ function connect(callback) {
                             var topic = parts[2];
 
                             var value = JSON.parse(event.payload);
-                            if (value.type === 'DecimalType' || value.type === 'Decimal') {
-                                value.value = parseFloat(value.value);
-                            } else if (value.type === 'OnOffType' || value.type === 'OnOff') {
-                                value.value = value.value === 'ON';
-                            } else if (value.type === 'PercentType' || value.type === 'Percent') {
-                                value.value = parseFloat(value.value);
-                            } else if (value.type === 'StringType' || value.type === 'String') {
-                                // do nothing
-                            } else if (value.type === 'DateTimeType' || value.type === 'DateTime') {
-                                // do nothing
-                                // 2017-05-05T03:28:00.000+0000
-
-                            } else if (value.type === 'HSBType' || value.type === 'HSB') {
-                                // do nothing
-                                // 336,17,37
-
-                            } else {
-                                adapter.log.warn('Unknown type: ' + JSON.stringify(value));
-                            }
+                            value.value = oh2iob(value.type, value.value);
 
                             adapter.log.debug('Received [' + adapter.namespace + '.items.' + topic + '] = ' + JSON.stringify(value));
                             adapter.setState(adapter.namespace + '.items.' + topic, value.value, true);
