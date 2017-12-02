@@ -41,11 +41,11 @@ adapter.on('unload', function (callback) {
 
 function oh2iob(type, val) {
 
-    if (undefined === type) {
+    if (undefined === type || type === null) {
         type = 'undefined';
     }
 
-    type = type.toLowerCase(); // get rid of capital letters. Makes it easy to parse.
+    type = type.toString().toLowerCase(); // get rid of capital letters. Makes it easy to parse.
 
     if (type === 'booleantype' || type === 'boolean') {
         return (val === true || val === 'true' || val === '1' || val === 1 || val === 'on' || val === 'ON')
@@ -85,11 +85,11 @@ function oh2iob(type, val) {
 
 function iob2oh(type, val)
 {
-    if (undefined === type) {
+    if (undefined === type || type === null) {
         type = 'undefined';
     }
 
-    type = type.toLowerCase(); // get rid of capital letters. Makes it easy to parse.
+    type = type.toString().toLowerCase(); // get rid of capital letters. Makes it easy to parse.
 
     if (type === 'switch') {
         if (val === true || val === 'true' || val === 1 || val === '1' || val === 'ON' || val === 'on') {
