@@ -40,7 +40,12 @@ adapter.on('unload', function (callback) {
 });
 
 function oh2iob(type, val) {
-    type = type.toLowerCase(); // get rid of capital letters. Makes it easy to parse.
+
+    if (undefined === type || type === null) {
+        type = 'undefined';
+    }
+
+    type = type.toString().toLowerCase(); // get rid of capital letters. Makes it easy to parse.
 
     if (type === 'booleantype' || type === 'boolean') {
         return (val === true || val === 'true' || val === '1' || val === 1 || val === 'on' || val === 'ON')
@@ -77,8 +82,44 @@ function oh2iob(type, val) {
     }
 }
 
+
+function iob2oh(type, val)
+{
+    if (undefined === type || type === null) {
+        type = 'undefined';
+    }
+
+    type = type.toString().toLowerCase(); // get rid of capital letters. Makes it easy to parse.
+
+    if (type === 'switch') {
+        if (val === true || val === 'true' || val === 1 || val === '1' || val === 'ON' || val === 'on') {
+            return 'ON'; 
+        } else {
+            return 'OFF';
+        }
+    } else if (type === 'number') {
+        return parseFloat(val);
+    } else if (type === 'dimmer' || type === 'rollershutter') {
+        return parseInt(val);
+    } else if (type === 'contact') { // not yet supported by Openhab, but maybe in the future
+        if (val === true || val === 'true' || val === 1 || val === '1' || val === 'OPEN' || val === 'open') {
+            return 'OPEN';
+        } else {
+            return 'CLOSED';
+        }
+    } else if (type === 'string') {
+        // Writing of window handle is not supported
+        return val;
+    } else {
+        adapter.log.warn('iob2oh - Unknown type: ' + type);
+        return val;
+    }
+}
+
+
 // is called if a subscribed state changes
 adapter.on('stateChange', function (id, state) {
+    adapter.log.debug('stateChange ' + id + ' ' + JSON.stringify(state));
     if (state && !state.ack) {
         if (objects[id]) {
             if (objects[id].common.write && objects[id].native.name) {
@@ -86,19 +127,19 @@ adapter.on('stateChange', function (id, state) {
                 if (!connected) {
                     adapter.log.warn('Cannot control: no connection to openhab "' + adapter.config.host + '"');
                 } else {
-                    adapter.log.debug('Type = ' + objects[id].common.type);
-
-                    // convert values
-                    state.val = oh2iob(state.type, state.val);
+                    adapter.log.debug('Type = ' + objects[id].native.type);
 
                     var originalVal = state.val;
 
-                    var link = URL + '/items/' + objects[id].native.name;
-                    adapter.log.debug(link);
-
                     if (state.val === null || state.val === undefined) {
                         state.val = '';
+                    } else {
+                        // convert values
+                        state.val = iob2oh(objects[id].native.type, state.val);
                     }
+
+                    var link = URL + '/items/' + objects[id].native.name;
+                    adapter.log.debug(link);
 
                     request.post({
                         headers: {'content-type': 'text/plain'},
