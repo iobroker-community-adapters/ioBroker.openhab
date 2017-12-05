@@ -151,7 +151,7 @@ function oh2iob(type, val) {
         // do nothing
         // 2017-05-05T03:28:00.000+0000
         return val;
-    } else if (type === 'hsbtype' || type === 'hsb' || type === 'Color' || type === 'color') {
+    } else if (type === 'hsbtype' || type === 'hsb' || type === 'color') {
         // do nothing
         // 336,17,37
 
