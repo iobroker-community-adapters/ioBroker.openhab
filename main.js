@@ -122,7 +122,7 @@ function HexToRGB(hex) {
 // type     : the type received from OH
 // val      : value
 // destType : destination type (needed eg. for OH color type)
-function oh2iob(type, val, destType = null, oldValue = null) {
+function oh2iob(type, val, destType, oldValue) {
 
     if (undefined === type || type === null) {
         type = 'undefined';
