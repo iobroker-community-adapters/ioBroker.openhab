@@ -94,6 +94,7 @@ function HSBToRGB(h1,s1,b1) {
         else if(h<360) {rgb.r=t1; rgb.g=t2;     rgb.b=t1-t3}
         else {rgb.r=0; rgb.g=0; rgb.b=0}
     }
+
     return {r:Math.round(rgb.r), g:Math.round(rgb.g), b:Math.round(rgb.b)};
 };
 
@@ -105,9 +106,9 @@ function RGBToHex(rgb) {
         rgb.b.toString(16)
     ];
 
-   if (rgb.r.length == 1) { rgb.r = '0' + rgb.r; }
-   if (rgb.g.length == 1) { rgb.g = '0' + rgb.g; }
-   if (rgb.b.length == 1) { rgb.b = '0' + rgb.b; }
+   if (hex[0].length == 1) { hex[0] = "0" + hex[0];}
+   if (hex[1].length == 1) { hex[1] = "0" + hex[1];}
+   if (hex[2].length == 1) { hex[2] = "0" + hex[2];}
 
    return hex.join('');
 };
@@ -118,24 +119,60 @@ function HexToRGB(hex) {
 };
 
 
-function oh2iob(type, val) {
+// type     : the type received from OH
+// val      : value
+// destType : destination type (needed eg. for OH color type)
+function oh2iob(type, val, destType, oldValue) {
 
     if (undefined === type || type === null) {
         type = 'undefined';
     }
-
     type = type.toString().toLowerCase(); // get rid of capital letters. Makes it easy to parse.
+
+    if (undefined === destType || destType === null) {
+        destType = 'undefined';
+    }
+    destType = destType.toString().toLowerCase(); // get rid of capital letters. Makes it easy to parse.
 
     if (type === 'booleantype' || type === 'boolean') {
         return (val === true || val === 'true' || val === '1' || val === 1 || val === 'on' || val === 'ON')
     } else if (type === 'decimaltype' || type === 'decimal' || type === 'number' || type === 'dimmer' || type === 'rollershutter') {
         return parseFloat((val || '0').toString().replace(',', '.'));
     } else if (type === 'onofftype' || type === 'onoff' || type === 'switch') {
-        return (val === 'ON' || val === 'on');
+        if (destType === 'color') {
+            var brightness = 0;
+            if (val === 'ON' || val === 'on') {
+                brightness = 100;
+            }
+
+            // RGB to HSB
+            var rgbValue = HexToRGB(oldValue);
+            var hsbValue = RGBToHSB(rgbValue);
+            rgbValue = HSBToRGB(parseFloat(hsbValue.h), parseFloat(hsbValue.s), parseFloat(brightness));
+            return '#' + RGBToHex(rgbValue);
+        } else if (destType === 'dimmer') {
+            if (val === 'ON' || val === 'on') {
+                return 100;
+            } else {
+                return 0;
+            }
+        }else {
+            return (val === 'ON' || val === 'on');
+        }
     } else if (type === 'openclosedtype' || type === 'openclosed' || type === 'contact') {
         return (val === 'OPEN' || val === 'open');
     }  else if (type === 'percenttype' || type === 'percent') {
-        return parseFloat(val);
+        if (destType === 'color') {
+            // Percent type means to scale the brightness
+
+            // RGB to HSB
+            var rgbValue = HexToRGB(oldValue);
+            var hsbValue = RGBToHSB(rgbValue);
+            rgbValue = HSBToRGB(parseFloat(hsbValue.h), parseFloat(hsbValue.s), parseFloat(val));
+            return '#' + RGBToHex(rgbValue);
+        } else {
+            return parseFloat(val);
+        }
     } else if (type === 'stringtype' || type === 'string' || type === 'location') {
         // only workaround for Openhab window handle (tri state)
         if (val === 'OPEN') {
@@ -157,8 +194,8 @@ function oh2iob(type, val) {
 
         // make one RGB value out of it to have only one variable. The RGB value can be used for a colorpicker.
         var hsl = val.toString().split(',');
-
         var rgbValue = HSBToRGB(parseFloat(hsl[0]), parseFloat(hsl[1]), parseFloat(hsl[2]));
+
         return '#' + RGBToHex(rgbValue);
     } else {
         adapter.log.warn('oh2iob - Unknown type: ' + type);
@@ -690,9 +727,11 @@ function connect(callback) {
                         }
 
                         if (typeof items[i].state !== 'undefined' && items[i].state !== 'undefined') {
+                            var iobStateVal = oh2iob(items[i].type, items[i].state, null, null);
+                            states[id] = iobStateVal;
                             _states.push({
                                 _id: id,
-                                val: {val: oh2iob(items[i].type, items[i].state), ack: true}
+                                val: {val: iobStateVal, ack: true}
                             });
                         }
                     }
@@ -715,10 +754,12 @@ function connect(callback) {
                             var topic = parts[2];
 
                             var value = JSON.parse(event.payload);
-                            value.value = oh2iob(value.type, value.value);
+                            var id = adapter.namespace + '.items.' + topic;
 
-                            adapter.log.debug('Received [' + adapter.namespace + '.items.' + topic + '] = ' + JSON.stringify(value));
-                            adapter.setState(adapter.namespace + '.items.' + topic, value.value, true);
+                            value.value = oh2iob(value.type, value.value, objects[id].native.type, states[id]);
+                            adapter.log.debug('Received [' + id + '] = ' + JSON.stringify(value));
+                            states[id] = value.value;
+                            adapter.setState(id, value.value, true);
                         }
                     });
 
