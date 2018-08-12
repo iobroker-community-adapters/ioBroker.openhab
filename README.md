@@ -9,7 +9,7 @@ It exports devices and groups from openhab and then monitors updates of variable
 ## Todo
 - New devices detect synonymous without adapter restart?
 - At the moment only items view / switchable, can also the "things" be read
-- Items deleted from OpenHab do not disappear in iObroker
+- Items deleted from OpenHab do not disappear in ioBroker
 
 ## Changelog
 ### 0.3.0 (2018.08.12)
