@@ -1,0 +1,138 @@
+<html>
+<head>
+    <!-- these 4 files always have to be included -->
+    <link rel="stylesheet" type="text/css" href="../../lib/css/materialize.css">
+    <link rel="stylesheet" type="text/css" href="../../css/adapter.css"/>
+
+    <script type="text/javascript" src="../../lib/js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="../../socket.io/socket.io.js"></script>
+
+    <!-- these files always have to be included -->
+    <script type="text/javascript" src="../../js/translate.js"></script>
+    <script type="text/javascript" src="../../lib/js/materialize.js"></script>
+    <script type="text/javascript" src="../../js/adapter-settings.js"></script>
+    <script type="text/javascript" src="words.js"></script>
+
+<script type="text/javascript">
+
+    function encrypt(key, value) {
+        var result = '';
+        for(var i = 0; i < value.length; i++) {
+            result += String.fromCharCode(key[i % key.length].charCodeAt(0) ^ value.charCodeAt(i));
+        }
+        return result;
+    }
+    function decrypt(key, value) {
+        var result = '';
+        for(var i = 0; i < value.length; i++) {
+            result += String.fromCharCode(key[i % key.length].charCodeAt(0) ^ value.charCodeAt(i));
+        }
+        return result;
+    }
+
+    // the function loadSettings has to exist ...
+    function load(settings, onChange) {
+        systemConfig.native = systemConfig.native || {};
+        systemConfig.native.secret = systemConfig.native.secret || 'Zgfr56gFe87jJOM';
+
+        if (settings.url) {
+            settings.protocol = settings.url.match(/^https:/) ? 'https' : 'http';
+            var url = settings.url.replace('https://', '').replace('http://', '');
+            var parts = url.split('/');
+            settings.path = '/' + (parts[1] || '');
+            parts = parts[0].split(':');
+            settings.host = parts[0];
+            settings.port = parts[1] || 80;
+            delete settings.url;
+        }
+
+        for (var key in settings) {
+            if (!settings.hasOwnProperty(key)) continue;
+
+            if (key === 'password') {
+                settings.password = decrypt(atob(systemConfig.native.secret), settings.password);
+            }
+
+            var $value = $('#' + key + '.value');
+            if ($value.attr('type') === 'checkbox') {
+                $value.prop('checked', settings[key]).on('change', function () {
+					onChange();
+				});
+            } else {
+                $value.val(settings[key]).on('change', function () {
+					onChange();
+				}).on('keyup', function () {
+					$(this).trigger('change');
+				});
+            }
+        }
+        onChange(false);
+    }
+
+    function save(callback) {
+        var obj = {};
+        $('.value').each(function () {
+            var $this = $(this);
+            var id = $this.attr('id');
+            if ($this.attr('type') === 'checkbox') {
+                obj[id] = $this.prop('checked');
+            } else {
+                obj[id] = (id === 'password') ? btoa(encrypt(systemConfig.native.secret, $this.val())) : $this.val();
+            }
+        });
+        obj.url = '';
+        callback(obj);
+    }
+</script>
+</head>
+<body>
+<div class="m adapter-container">
+    <div class="row">
+        <div class="input-field col s6">
+            <img src="openhab.png" class="logo">
+        </div>
+    </div>
+    <div class="row">
+        <div class="input-field col s12 m4 l3">
+            <input class="value" id="host" type="text"/>
+            <label class="translate" for="host">OpenHAB IP:</label>
+        </div>
+        <div class="input-field col s12 m4 l3">
+            <input class="value" id="port" type="number" min="0" max="65565"/>
+            <label class="translate" for="port">OpenHAB Port:</label>
+        </div>
+    </div>
+    <div class="row">
+        <div class="input-field col s12 m4 l3">
+            <select class="value" id="protocol">
+                <option value="http">http</option>
+                <option value="https">https</option>
+            </select>
+            <label class="translate" for="protocol">OpenHAB protocol:</label>
+        </div>
+        <div class="row">
+            <div class="input-field col s12 m4 l3">
+                <input class="value" id="path" type="text"/>
+                <label class="translate" for="path">OpenHAB path:</label>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="input-field col s12 m4 l3">
+            <input class="value" id="username" type="text"/>
+            <label class="translate" for="username">Username:</label>
+        </div>
+        <div class="input-field col s12 m4 l3">
+            <input class="value" type="password" id="password"/>
+            <label class="translate" for="password">Password:</label>
+        </div>
+    </div>
+    <div class="row">
+        <div class="input-field col s12 m4 l3">
+            <input class="value" id="reconnectTimeout"/>
+            <label class="translate" for="reconnectTimeout">Reconnect timeout(ms):</label>
+        </div>
+    </div>
+</div>
+</body>
+</html>

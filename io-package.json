@@ -1,50 +1,43 @@
 {
     "common": {
         "name": "openhab",
-        "version": "0.2.1",
+        "version": "0.3.0",
         "news": {
+            "0.3.0": {
+                "en": "Many corrections for types\nSupport of Admin3",
+                "de": "Viele Korrekturen für Typen\nUnterstützung von Admin3",
+                "ru": "Многие исправления для типов\nПоддержка Admin3",
+                "pt": "Muitas correções para tipos\nSuporte do Admin3",
+                "nl": "Veel correcties voor typen\nOndersteuning van Admin3",
+                "fr": "Beaucoup de corrections pour les types\nSupport de Admin3",
+                "it": "Molte correzioni per i tipi\nSupporto di Admin3",
+                "es": "Muchas correcciones para tipos\nSoporte de Admin3",
+                "pl": "Wiele poprawek dla typów\nWsparcie dla Admin3"
+            },
             "0.2.1": {
                 "en": "Fix decimal types",
                 "de": "Korrigiere Dezimaltypen",
                 "ru": "исправлена ошибка с числами"
-            },
-            "0.2.0": {
-                "en": "Fix small error by the connection closing",
-                "de": "Korrigiere klein Fehler beim Verbindungsabbruch",
-                "ru": "исправлена маленькая ошибка при закрытии соедиения"
-            },
-            "0.1.5": {
-                "en": "changed types for openHAB",
-                "de": "Die Typennamen wurden geändert",
-                "ru": "Изменены имена типов"
-            },
-            "0.1.4": {
-                "en": "allow control of dimmer",
-                "de": "Dimmer ist erlaubt",
-                "ru": "Диммер должен работать"
-            },
-            "0.1.3": {
-                "en": "change settings",
-                "de": "Einstellungen sind geändert",
-                "ru": "Изменены настройки"
-            },
-            "0.1.0": {
-                "en": "initial adapter",
-                "de": "Initiale Version",
-                "ru": "Первоначальный адаптер"
             }
         },
-        "title": "openhab adapter",
+        "title": "OpenHAB",
         "desc": {
-            "en": "ioBroker openhab Adapter",
-            "de": "ioBroker openhab Adapter",
-            "ru": "ioBroker openhab драйвер"
+            "en": "Connects ioBroker with OpenHAB",
+            "de": "Verbindet ioBroker mit OpenHAB",
+            "ru": "Соединяет ioBroker с OpenHAB",
+            "pt": "Conecta o ioBroker com o OpenHAB",
+            "nl": "Verbindt ioBroker met OpenHAB",
+            "fr": "Connecte ioBroker à OpenHAB",
+            "it": "Collega ioBroker con OpenHAB",
+            "es": "Conecta ioBroker con OpenHAB",
+            "pl": "Łączy oprogramowanie ioBroker z OpenHAB"
         },
         "platform": "Javascript/Node.js",
         "localLink": "%protocol%://%host%:%port%/",
         "mode": "daemon",
         "icon": "openhab.png",
         "enabled": false,
+        "materialize": true,
         "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.openhab/master/admin/openhab.png",
         "keywords": [
             "openhab"
