@@ -160,6 +160,7 @@ function oh2iob(type, val, destType, oldValue) {
         type = 'undefined';
     }
     type = type.toString().toLowerCase(); // get rid of capital letters. Makes it easy to parse.
+    
 
     if (undefined === destType || destType === null) {
         destType = 'undefined';
@@ -168,7 +169,9 @@ function oh2iob(type, val, destType, oldValue) {
 
     if (type === 'booleantype' || type === 'boolean') {
         return (val === true || val === 'true' || val === '1' || val === 1 || val === 'on' || val === 'ON')
-    } else if (type === 'decimaltype' || type === 'decimal' || type === 'number' || type === 'dimmer' || type === 'rollershutter') {
+    } else if (type === 'decimaltype' || type === 'decimal' || type.startsWith('number') || type === 'dimmer' || type === 'rollershutter' || type === 'quantity') {
+        // OH2.4 allows to add additional information to the number type. Therefore the check for NUMBER is done differently.
+    	// Quantity is a number having a unit of measure
         return parseFloat((val || '0').toString().replace(',', '.'));
     } else if (type === 'onofftype' || type === 'onoff' || type === 'switch') {
         if (destType === 'color') {
@@ -205,7 +208,7 @@ function oh2iob(type, val, destType, oldValue) {
         } else {
             return parseFloat(val);
         }
-    } else if (type === 'stringtype' || type === 'string' || type === 'location') {
+    } else if (type === 'stringtype' || type === 'stringlist' || type === 'string' || type === 'location' || type === 'call') {
         // only workaround for Openhab window handle (tri state)
         if (val === 'OPEN') {
             return 'open';
@@ -249,7 +252,7 @@ function iob2oh(type, val) {
         } else {
             return 'OFF';
         }
-    } else if (type === 'number') {
+    } else if (type.startsWith('number')) {
         return parseFloat(val);
     } else if (type === 'dimmer' || type === 'rollershutter') {
         return parseInt(val);
@@ -269,7 +272,7 @@ function iob2oh(type, val) {
         return (hsbValue.h.toString() + ',' + hsbValue.s.toString() + ',' + hsbValue.b.toString());
 
     } else {
-        adapter.log.warn('iob2oh - Unknown type: ' + type);
+        adapter.log.warn('iob2oh - Unknown type: ' + type + " with value = " + val);
         return val;
     }
 }
