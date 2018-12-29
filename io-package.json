@@ -1,8 +1,19 @@
 {
     "common": {
         "name": "openhab",
-        "version": "0.3.0",
+        "version": "1.0.0",
         "news": {
+            "1.0.0": {
+                "en": "New type quantity was added",
+                "de": "Neue Typ quantity wurde hinzugefügt",
+                "ru": "Добавлен новый тип quantity",
+                "pt": "Novo tipo de quantity foi adicionado",
+                "nl": "Nieuwe type quantity is toegevoegd",
+                "fr": "La nouvelle quantity a été ajoutée",
+                "it": "È stata aggiunta una nuova quantity di tipo",
+                "es": "Se agregó nueva quantity de tipo",
+                "pl": "Dodano nową quantity typów"
+            },
             "0.3.0": {
                 "en": "Many corrections for types\nSupport of Admin3",
                 "de": "Viele Korrekturen für Typen\nUnterstützung von Admin3",

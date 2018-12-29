@@ -12,6 +12,9 @@ It exports devices and groups from openhab and then monitors updates of variable
 - Items deleted from OpenHab do not disappear in ioBroker
 
 ## Changelog
+### 1.0.0 (2018.12.29)
+* (Schluesselmeister) New type quantity was added
+
 ### 0.3.0 (2018.08.12)
 * (Schluesselmeister) Many fixes
 * (bluefox) Admin3
