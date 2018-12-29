@@ -272,7 +272,7 @@ function iob2oh(type, val) {
         return (hsbValue.h.toString() + ',' + hsbValue.s.toString() + ',' + hsbValue.b.toString());
 
     } else {
-        adapter.log.warn('iob2oh - Unknown type: ' + type + " with value = " + val);
+        adapter.log.warn('iob2oh - Unknown type: ' + type + ' with value = ' + val);
         return val;
     }
 }
