@@ -9,9 +9,16 @@ It exports devices and groups from openhab and then monitors updates of variable
 ## Todo
 - New devices detect synonymous without adapter restart?
 - At the moment only items view / switchable, can also the "things" be read
-- Items deleted from OpenHab do not disappear in iObroker
+- Items deleted from OpenHab do not disappear in ioBroker
 
 ## Changelog
+### 1.0.0 (2018.12.29)
+* (Schluesselmeister) New type quantity was added
+
+### 0.3.0 (2018.08.12)
+* (Schluesselmeister) Many fixes
+* (bluefox) Admin3
+
 ### 0.2.1 (2017.11.30)
 * (bluefox) Fix decimal types
 
@@ -33,7 +40,7 @@ It exports devices and groups from openhab and then monitors updates of variable
 ## License
 The MIT License (MIT)
 
-Copyright (c) 2017 bluefox <dogafox@gmail.com>
+Copyright (c) 2017-2018 bluefox <dogafox@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
