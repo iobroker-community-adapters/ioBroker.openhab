@@ -717,8 +717,9 @@ function connect(callback) {
                             objs.push(enums[items[i].name]);
                         }
                     } else {
-                        adapter.log.debug("Type to be handled : " + items[i].type);
-                        const common = ohTypes[items[i].type] ? ohTypes[items[i].type](items[i]) : {
+                    	// OH feature "Number:Temperature" => split and handle the main part
+                        adapter.log.debug("Type to be handled : " + items[i].type.split(':')[0]);
+                        const common = ohTypes[items[i].type.split(':')[0]] ? ohTypes[items[i].type.split(':')[0]](items[i]) : {
                             type: 'string',
                             role: 'state',
                             name: items[i].label
