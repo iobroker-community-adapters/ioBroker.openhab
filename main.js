@@ -232,7 +232,12 @@ function oh2iob(type, val, destType, oldValue) {
         const rgbValue = HSBToRGB(parseFloat(hsl[0]), parseFloat(hsl[1]), parseFloat(hsl[2]));
 
         return '#' + RGBToHex(rgbValue);
-    } else {
+    } else if (type === 'updown') {
+    	// Shutter command to move up or down. The destination type of the related object is level.blind and needs a percentage value.  
+    	// Therefore this type is simply ignored and return the original value of the object
+    	return oldValue;
+    
+	} else {
         adapter.log.warn('oh2iob - Unknown type: ' + type);
         return val;
     }
