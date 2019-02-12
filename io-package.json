@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "openhab",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "news": {
+            "1.1.0": {
+                "en": "First support for the new OpenHAB type definition was added",
+                "de": "Erste Unterstützung für die neue OpenHAB-Typdefinition wurde hinzugefügt",
+                "ru": "Первая поддержка нового определения типа OpenHAB была добавлена",
+                "pt": "Primeiro suporte para a nova definição de tipo OpenHAB foi adicionado",
+                "nl": "Eerste ondersteuning voor de nieuwe OpenHAB-typedefinitie is toegevoegd",
+                "fr": "La première prise en charge de la nouvelle définition de type OpenHAB a été ajoutée.",
+                "it": "È stato aggiunto il primo supporto per la nuova definizione del tipo OpenHAB",
+                "es": "Se agregó el primer soporte para la nueva definición de tipo OpenHAB",
+                "pl": "Dodano pierwsze wsparcie dla nowej definicji typu OpenHAB",
+                "zh-cn": "首次支持新的OpenHAB类型定义"
+            },
             "1.0.0": {
                 "en": "New type quantity was added",
                 "de": "Neue Typ quantity wurde hinzugefügt",
@@ -13,8 +25,7 @@
                 "it": "È stata aggiunta una nuova quantity di tipo",
                 "es": "Se agregó nueva quantity de tipo",
                 "pl": "Dodano nową quantity typów"
-            },
-            "0.3.0": {
+            },"0.3.0": {
                 "en": "Many corrections for types\nSupport of Admin3",
                 "de": "Viele Korrekturen für Typen\nUnterstützung von Admin3",
                 "ru": "Многие исправления для типов\nПоддержка Admin3",
@@ -41,7 +52,8 @@
             "fr": "Connecte ioBroker à OpenHAB",
             "it": "Collega ioBroker con OpenHAB",
             "es": "Conecta ioBroker con OpenHAB",
-            "pl": "Łączy oprogramowanie ioBroker z OpenHAB"
+            "pl": "Łączy oprogramowanie ioBroker z OpenHAB",
+            "zh-cn": "将ioBroker与OpenHAB连接"
         },
         "platform": "Javascript/Node.js",
         "localLink": "%protocol%://%host%:%port%/",
