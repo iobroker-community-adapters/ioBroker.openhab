@@ -232,7 +232,12 @@ function oh2iob(type, val, destType, oldValue) {
         const rgbValue = HSBToRGB(parseFloat(hsl[0]), parseFloat(hsl[1]), parseFloat(hsl[2]));
 
         return '#' + RGBToHex(rgbValue);
-    } else {
+    } else if (type === 'updown') {
+    	// Shutter command to move up or down. The destination type of the related object is level.blind and needs a percentage value.  
+    	// Therefore this type is simply ignored and return the original value of the object
+    	return oldValue;
+    
+	} else {
         adapter.log.warn('oh2iob - Unknown type: ' + type);
         return val;
     }
@@ -712,8 +717,9 @@ function connect(callback) {
                             objs.push(enums[items[i].name]);
                         }
                     } else {
-                        adapter.log.debug("Type to be handled : " + items[i].type);
-                        const common = ohTypes[items[i].type] ? ohTypes[items[i].type](items[i]) : {
+                    	// OH feature "Number:Temperature" => split and handle the main part
+                        adapter.log.debug("Type to be handled : " + items[i].type.split(':')[0]);
+                        const common = ohTypes[items[i].type.split(':')[0]] ? ohTypes[items[i].type.split(':')[0]](items[i]) : {
                             type: 'string',
                             role: 'state',
                             name: items[i].label
