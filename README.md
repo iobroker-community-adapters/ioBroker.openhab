@@ -1,3 +1,5 @@
+# Moved to https://github.com/iobroker-community-adapters/ioBroker.openhab
+
 ![Logo](admin/openhab.png)
 # ioBroker.openhab
 =================
