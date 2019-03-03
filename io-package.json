@@ -55,6 +55,7 @@
             "pl": "Łączy oprogramowanie ioBroker z OpenHAB",
             "zh-cn": "将ioBroker与OpenHAB连接"
         },
+        "license": "MIT",
         "platform": "Javascript/Node.js",
         "localLink": "%protocol%://%host%:%port%/",
         "mode": "daemon",
