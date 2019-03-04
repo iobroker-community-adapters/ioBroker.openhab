@@ -30,13 +30,13 @@
   },
   "dependencies": {
     "request": "^2.88.0",
-    "eventsource": "^1.0.5"
+    "eventsource": "^1.0.5",
+    "@iobroker/adapter-core": "^1.0.3"
   },
   "devDependencies": {
     "gulp": "^3.9.1",
     "mocha": "^6.0.2",
-    "chai": "^4.1.2",
-    "@iobroker/adapter-core": "^1.0.3"
+    "chai": "^4.1.2"
   },
   "main": "main.js",
   "scripts": {
