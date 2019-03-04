@@ -55,17 +55,18 @@
             "pl": "Łączy oprogramowanie ioBroker z OpenHAB",
             "zh-cn": "将ioBroker与OpenHAB连接"
         },
+        "license": "MIT",
         "platform": "Javascript/Node.js",
         "localLink": "%protocol%://%host%:%port%/",
         "mode": "daemon",
         "icon": "openhab.png",
         "enabled": false,
         "materialize": true,
-        "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.openhab/master/admin/openhab.png",
+        "extIcon": "https://raw.githubusercontent.com/iobroker-community-adapters/ioBroker.openhab/master/admin/openhab.png",
         "keywords": [
             "openhab"
         ],
-        "readme": "https://github.com/ioBroker/ioBroker.openhab/blob/master/README.md",
+        "readme": "https://github.com/iobroker-community-adapters/ioBroker.openhab/blob/master/README.md",
         "loglevel": "info",
         "type": "iot-systems",
         "authors": [
