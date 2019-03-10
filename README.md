@@ -1,5 +1,5 @@
 # Moved to https://github.com/iobroker-community-adapters/ioBroker.openhab
-
+![Number of Installations](http://iobroker.live/badges/openhab-installed.svg) ![Number of Installations](http://iobroker.live/badges/openhab-stable.svg) 
 ![Logo](admin/openhab.png)
 # ioBroker.openhab
 =================
