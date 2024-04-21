@@ -34,7 +34,7 @@
   "dependencies": {
     "request": "^2.88.0",
     "eventsource": "^2.0.0",
-    "@iobroker/adapter-core": "^2.6.0"
+    "@iobroker/adapter-core": "^3.1.4"
   },
   "devDependencies": {
     "@alcalzone/release-script": "^3.7.0",
