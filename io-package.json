@@ -42,7 +42,19 @@
                 "ru": "исправлена ошибка с числами"
             }
         },
-        "title": "OpenHAB",
+        "titleLang": {
+            "en": "OpenHAB",
+            "de": "OpenHAB",
+            "ru": "OpenHAB",
+            "pt": "OpenHAB",
+            "nl": "OpenHAB",
+            "fr": "OpenHAB",
+            "it": "OpenHAB",
+            "es": "OpenHAB",
+            "pl": "OpenHAB",
+            "uk": "АКЦІЇ",
+            "zh-cn": "打开HAB"
+        },
         "desc": {
             "en": "Connects ioBroker with OpenHAB",
             "de": "Verbindet ioBroker mit OpenHAB",
@@ -55,7 +67,10 @@
             "pl": "Łączy oprogramowanie ioBroker z OpenHAB",
             "zh-cn": "将ioBroker与OpenHAB连接"
         },
-        "license": "MIT",
+        "licenseInformation": {
+            "license": "MIT",
+            "type": "free"
+        },
         "platform": "Javascript/Node.js",
         "localLink": "%protocol%://%host%:%port%/",
         "mode": "daemon",
@@ -68,11 +83,22 @@
         ],
         "readme": "https://github.com/iobroker-community-adapters/ioBroker.openhab/blob/master/README.md",
         "loglevel": "info",
+        "tier": 2,
         "type": "iot-systems",
         "authors": [
             {
                 "name": "bluefox",
                 "email": "dogafox@gmail.com"
+            }
+        ],
+        "dependencies": [
+            {
+              "js-controller": ">=5.0.19"
+            }
+        ],
+        "globalDependencies": [
+            {
+              "admin": ">=6.13.16"
             }
         ]
     },
