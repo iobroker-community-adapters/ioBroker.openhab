@@ -1,0 +1,83 @@
+name: Check ioBroker Copilot Template Version
+
+on:
+  schedule:
+    - cron: '23 3 * * 0'
+  workflow_dispatch:
+
+jobs:
+  check-template:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Check template version
+        id: version-check
+        run: |
+          echo "Checking template version..."
+          
+          if [ -f ".github/copilot-instructions.md" ]; then
+            CURRENT_VERSION=$(grep "Version:" .github/copilot-instructions.md | head -1 | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+' || echo "unknown")
+          else
+            CURRENT_VERSION="none"
+          fi
+          
+          LATEST_VERSION=$(curl -s https://raw.githubusercontent.com/DrozmotiX/ioBroker-Copilot-Instructions/main/config/metadata.json | jq -r '.version' || echo "unknown")
+          
+          echo "current-version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "latest-version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          
+          if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
+            echo "update-needed=true" >> $GITHUB_OUTPUT
+          else
+            echo "update-needed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create update issue
+        if: steps.version-check.outputs.update-needed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const currentVersion = '${{ steps.version-check.outputs.current-version }}';
+            const latestVersion = '${{ steps.version-check.outputs.latest-version }}';
+            
+            let title, body, labels;
+            
+            if (currentVersion === 'none') {
+              title = 'Setup ioBroker GitHub Copilot Instructions';
+              labels = ['copilot-setup'];
+              body = 'GitHub Copilot: Please set up ioBroker Copilot instructions for this adapter repository.\n\nLatest Version: ' + latestVersion + '\nTemplate: https://raw.githubusercontent.com/DrozmotiX/ioBroker-Copilot-Instructions/main/template.md';
+            } else {
+              title = 'Update Copilot Template to ' + latestVersion;
+              labels = ['template-update'];
+              body = 'GitHub Copilot: Please update the ioBroker Copilot template.\n\nCurrent: ' + currentVersion + '\nLatest: ' + latestVersion + '\nTemplate: https://raw.githubusercontent.com/DrozmotiX/ioBroker-Copilot-Instructions/main/template.md';
+            }
+            
+            // Check for existing issues first
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open'
+            });
+            
+            const existingIssue = issues.find(issue => 
+              issue.title.includes('Copilot') && (
+                issue.title.includes('Setup') || 
+                issue.title.includes('Update')
+              )
+            );
+            
+            if (!existingIssue) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: labels
+              });
+            }
