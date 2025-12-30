@@ -2,19 +2,11 @@
   "name": "iobroker.openhab",
   "version": "1.2.0",
   "description": "ioBroker openhab Adapter",
-  "author": {
-    "name": "bluefox",
-    "email": "dogafox@gmail.com"
-  },
+  "author": "bluefox <dogafox@gmail.com>",
   "contributors": [
-    {
-      "name": "bluefox",
-      "email": "dogafox@gmail.com"
-    },
-    {
-      "name": "Schluesselmeister",
-      "email": "email?@gmail.com"
-    }
+    "bluefox <dogafox@gmail.com>",
+    "Schluesselmeister <email?@gmail.com>",
+    "iobroker-community-adapters <iobroker-community-adapters@gmx.de>"
   ],
   "homepage": "https://github.com/iobroker-community-adapters/ioBroker.openhab",
   "license": "MIT",
