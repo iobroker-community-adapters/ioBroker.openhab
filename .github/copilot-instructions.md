@@ -1,9 +1,37 @@
 # ioBroker Adapter Development with GitHub Copilot
 
-**Version:** 0.4.0
+**Version:** 0.5.7  
 **Template Source:** https://github.com/DrozmotiX/ioBroker-Copilot-Instructions
 
 This file contains instructions and best practices for GitHub Copilot when working on ioBroker adapter development.
+
+---
+
+## 📑 Table of Contents
+
+1. [Project Context](#project-context)
+2. [Code Quality & Standards](#code-quality--standards)
+   - [Code Style Guidelines](#code-style-guidelines)
+   - [ESLint Configuration](#eslint-configuration)
+3. [Testing](#testing)
+   - [Unit Testing](#unit-testing)
+   - [Integration Testing](#integration-testing)
+   - [API Testing with Credentials](#api-testing-with-credentials)
+4. [Development Best Practices](#development-best-practices)
+   - [Dependency Management](#dependency-management)
+   - [HTTP Client Libraries](#http-client-libraries)
+   - [Error Handling](#error-handling)
+5. [Admin UI Configuration](#admin-ui-configuration)
+   - [JSON-Config Setup](#json-config-setup)
+   - [Translation Management](#translation-management)
+6. [Documentation](#documentation)
+   - [README Updates](#readme-updates)
+   - [Changelog Management](#changelog-management)
+7. [CI/CD & GitHub Actions](#cicd--github-actions)
+   - [Workflow Configuration](#workflow-configuration)
+   - [Testing Integration](#testing-integration)
+
+---
 
 ## Project Context
 
@@ -34,52 +62,357 @@ You are working on an ioBroker adapter. ioBroker is an integration platform for 
 - Map OpenHAB item metadata (categories, tags, groups) to ioBroker object properties
 - Implement proper OpenHAB command sending with correct item types and formats
 
-## Core ioBroker Adapter Patterns
+---
 
-### Adapter Structure
-ioBroker adapters follow a standard structure with these key files:
-- `main.js` - Main adapter logic with lifecycle methods
-- `io-package.json` - Adapter configuration and metadata
-- `package.json` - Node.js package configuration
-- `admin/` - Admin interface files for configuration
-- `lib/` - Helper modules and utilities
+## Code Quality & Standards
 
-### Main Adapter Lifecycle
-Every ioBroker adapter extends the Adapter class and implements these methods:
+### Code Style Guidelines
+
+- Follow JavaScript/TypeScript best practices
+- Use async/await for asynchronous operations
+- Implement proper resource cleanup in `unload()` method
+- Use semantic versioning for adapter releases
+- Include proper JSDoc comments for public methods
+
+**Timer and Resource Cleanup Example:**
 ```javascript
-const adapter = new utils.Adapter('adaptername');
+private connectionTimer?: NodeJS.Timeout;
 
-// Called when adapter starts
-adapter.on('ready', () => {
-  // Initialize adapter, connect to external systems
-});
+async onReady() {
+  this.connectionTimer = setInterval(() => this.checkConnection(), 30000);
+}
 
-// Called when state changes in ioBroker
-adapter.on('stateChange', (id, state) => {
-  // Handle state changes from ioBroker objects
-});
+onUnload(callback) {
+  try {
+    if (this.connectionTimer) {
+      clearInterval(this.connectionTimer);
+      this.connectionTimer = undefined;
+    }
+    callback();
+  } catch (e) {
+    callback();
+  }
+}
+```
 
-// Called when adapter stops
-adapter.on('unload', (callback) => {
-  // Clean up resources, close connections
-  callback();
+### ESLint Configuration
+
+**CRITICAL:** ESLint validation must run FIRST in your CI/CD pipeline, before any other tests. This "lint-first" approach catches code quality issues early.
+
+#### Setup
+```bash
+npm install --save-dev eslint @iobroker/eslint-config
+```
+
+#### Configuration (.eslintrc.json)
+```json
+{
+  "extends": "@iobroker/eslint-config",
+  "rules": {
+    // Add project-specific rule overrides here if needed
+  }
+}
+```
+
+#### Package.json Scripts
+```json
+{
+  "scripts": {
+    "lint": "eslint --max-warnings 0 .",
+    "lint:fix": "eslint . --fix"
+  }
+}
+```
+
+#### Best Practices
+1. ✅ Run ESLint before committing — fix ALL warnings, not just errors
+2. ✅ Use `lint:fix` for auto-fixable issues
+3. ✅ Don't disable rules without documentation
+4. ✅ Lint all relevant files (main code, tests, build scripts)
+5. ✅ Keep `@iobroker/eslint-config` up to date
+6. ✅ **ESLint warnings are treated as errors in CI** (`--max-warnings 0`). The `lint` script above already includes this flag — run `npm run lint` to match CI behavior locally
+
+#### Common Issues
+- **Unused variables**: Remove or prefix with underscore (`_variable`)
+- **Missing semicolons**: Run `npm run lint:fix`
+- **Indentation**: Use 4 spaces (ioBroker standard)
+- **console.log**: Replace with `adapter.log.debug()` or remove
+
+---
+
+## Testing
+
+### Unit Testing
+
+- Use Jest as the primary testing framework
+- Create tests for all adapter main functions and helper methods
+- Test error handling scenarios and edge cases
+- Mock external API calls and hardware dependencies
+- For adapters connecting to APIs/devices not reachable by internet, provide example data files
+
+**Example Structure:**
+```javascript
+describe('AdapterName', () => {
+  let adapter;
+  
+  beforeEach(() => {
+    // Setup test adapter instance
+  });
+  
+  test('should initialize correctly', () => {
+    // Test adapter initialization
+  });
 });
 ```
 
-### State and Object Management
-- Use `adapter.setObject()` to create ioBroker objects (devices, channels, states)
-- Use `adapter.setState()` to update state values
-- Use `adapter.subscribeStates()` to listen for state changes
-- Always set `ack: false` for commands from ioBroker, `ack: true` for status updates
+### Integration Testing
 
-### Configuration Access
-- Access adapter configuration via `adapter.config.property`
-- Store sensitive data (passwords) encrypted in native configuration
-- Use `adapter.decrypt()` and `adapter.encrypt()` for password handling
+**CRITICAL:** Use the official `@iobroker/testing` framework. This is the ONLY correct way to test ioBroker adapters.
 
-## OpenHAB-Specific Development Patterns
+**Official Documentation:** https://github.com/ioBroker/testing
 
-### REST API Communication
+#### Framework Structure
+
+**✅ Correct Pattern:**
+```javascript
+const path = require('path');
+const { tests } = require('@iobroker/testing');
+
+tests.integration(path.join(__dirname, '..'), {
+    defineAdditionalTests({ suite }) {
+        suite('Test adapter with specific configuration', (getHarness) => {
+            let harness;
+
+            before(() => {
+                harness = getHarness();
+            });
+
+            it('should configure and start adapter', function () {
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        // Get adapter object
+                        const obj = await new Promise((res, rej) => {
+                            harness.objects.getObject('system.adapter.openhab.0', (err, o) => {
+                                if (err) return rej(err);
+                                res(o);
+                            });
+                        });
+                        
+                        if (!obj) return reject(new Error('Adapter object not found'));
+
+                        // Configure adapter
+                        Object.assign(obj.native, {
+                            host: 'demo.openhab.org',
+                            port: 8080,
+                            protocol: 'http',
+                            path: '/rest'
+                        });
+
+                        harness.objects.setObject(obj._id, obj);
+                        
+                        // Start and wait
+                        await harness.startAdapterAndWait();
+                        await new Promise(resolve => setTimeout(resolve, 15000));
+
+                        // Verify states
+                        const stateIds = await harness.dbConnection.getStateIDs('openhab.0.*');
+                        
+                        if (stateIds.length > 0) {
+                            console.log('✅ Adapter successfully created states');
+                            await harness.stopAdapter();
+                            resolve(true);
+                        } else {
+                            reject(new Error('Adapter did not create any states'));
+                        }
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+            }).timeout(40000);
+        });
+    }
+});
+```
+
+#### Testing Success AND Failure Scenarios
+
+**IMPORTANT:** For every "it works" test, implement corresponding "it fails gracefully" tests.
+
+**Failure Scenario Example:**
+```javascript
+it('should handle connection timeouts gracefully', async function () {
+    this.timeout(180000); // 3 minutes for connection tests
+    
+    try {
+        // Configure adapter with invalid host to test timeout
+        Object.assign(obj.native, { host: 'invalid.host.local' });
+        harness.objects.setObject(obj._id, obj);
+        await harness.startAdapterAndWait();
+        
+        // Wait for timeout handling
+        await new Promise(resolve => setTimeout(resolve, 60000));
+        
+        // Verify adapter handled timeout correctly
+        const connectionState = await harness.states.getStateAsync('openhab.0.info.connection');
+        expect(connectionState.val).toBe(false);
+        
+    } catch (error) {
+        throw new Error(`Connection timeout test failed: ${error.message}`);
+    }
+});
+```
+
+#### Key Rules
+
+1. ✅ Use `@iobroker/testing` framework
+2. ✅ Configure via `harness.objects.setObject()`
+3. ✅ Start via `harness.startAdapterAndWait()`
+4. ✅ Verify states via `harness.states.getState()`
+5. ✅ Allow proper timeouts for async operations
+6. ❌ NEVER test API URLs directly
+7. ❌ NEVER bypass the harness system
+
+#### Workflow Dependencies
+
+Integration tests should run ONLY after lint and adapter tests pass:
+
+```yaml
+integration-tests:
+  needs: [check-and-lint, adapter-tests]
+  runs-on: ubuntu-22.04
+```
+
+#### OpenHAB-Specific Testing Considerations
+
+When testing the OpenHAB adapter:
+
+1. **Demo Server Testing**: Use OpenHAB's demo server (demo.openhab.org) for integration tests
+2. **Item Discovery**: Test that the adapter correctly discovers and creates ioBroker objects for OpenHAB items
+3. **Command Sending**: Verify bidirectional communication by sending commands to switchable items
+4. **SSE Connection**: Test real-time updates via Server-Sent Events
+5. **Error Handling**: Test behavior with invalid OpenHAB server configurations
+
+```javascript
+// OpenHAB-specific integration test example
+it("Should discover OpenHAB items and create ioBroker objects", async () => {
+    await harness.changeAdapterConfig("openhab", {
+        native: {
+            host: "demo.openhab.org",
+            port: 8080,
+            protocol: "http",
+            path: "/rest"
+        }
+    });
+
+    await harness.startAdapterAndWait();
+    await new Promise(resolve => setTimeout(resolve, 30000));
+
+    const objects = await harness.objects.getObjectViewAsync('system', 'state', 
+        { startkey: 'openhab.0.', endkey: 'openhab.0.\u9999' });
+    
+    expect(objects.rows.length).toBeGreaterThan(0);
+    console.log(`✅ Discovered ${objects.rows.length} OpenHAB items`);
+}).timeout(120000);
+```
+
+### API Testing with Credentials
+
+For adapters connecting to external APIs requiring authentication:
+
+#### Password Encryption for Integration Tests
+
+```javascript
+async function encryptPassword(harness, password) {
+    const systemConfig = await harness.objects.getObjectAsync("system.config");
+    if (!systemConfig?.native?.secret) {
+        throw new Error("Could not retrieve system secret for password encryption");
+    }
+    
+    const secret = systemConfig.native.secret;
+    let result = '';
+    for (let i = 0; i < password.length; ++i) {
+        result += String.fromCharCode(secret[i % secret.length].charCodeAt(0) ^ password.charCodeAt(i));
+    }
+    return result;
+}
+```
+
+#### Demo Credentials Testing Pattern
+
+- Use provider demo credentials when available
+- Create separate test file: `test/integration-demo.js`
+- Add npm script: `"test:integration-demo": "mocha test/integration-demo --exit"`
+- Implement clear success/failure criteria
+
+---
+
+## Development Best Practices
+
+### Dependency Management
+
+- Always use `npm` for dependency management
+- Use `npm ci` for installing existing dependencies (respects package-lock.json)
+- Use `npm install` only when adding or updating dependencies
+- Keep dependencies minimal and focused
+- Only update dependencies in separate Pull Requests
+
+**When modifying package.json:**
+1. Run `npm install` to sync package-lock.json
+2. Commit both package.json and package-lock.json together
+
+**Best Practices:**
+- Prefer built-in Node.js modules when possible
+- Use `@iobroker/adapter-core` for adapter base functionality
+- Avoid deprecated packages
+- Document specific version requirements
+
+### HTTP Client Libraries
+
+- **Preferred:** Use native `fetch` API (Node.js 20+ required)
+- **Avoid:** `axios` unless specific features are required
+
+**Example with fetch:**
+```javascript
+try {
+  const response = await fetch('https://api.example.com/data');
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+  const data = await response.json();
+} catch (error) {
+  this.log.error(`API request failed: ${error.message}`);
+}
+```
+
+**Other Recommendations:**
+- **Logging:** Use adapter built-in logging (`this.log.*`)
+- **Scheduling:** Use adapter built-in timers and intervals
+- **File operations:** Use Node.js `fs/promises`
+- **Configuration:** Use adapter config system
+
+### Error Handling
+
+- Always catch and log errors appropriately
+- Use adapter log levels (error, warn, info, debug)
+- Provide meaningful, user-friendly error messages
+- Handle network failures gracefully
+- Implement retry mechanisms where appropriate
+- Always clean up timers, intervals, and resources in `unload()` method
+
+**Example:**
+```javascript
+try {
+  await this.connectToDevice();
+} catch (error) {
+  this.log.error(`Failed to connect to device: ${error.message}`);
+  this.setState('info.connection', false, true);
+  // Implement retry logic if needed
+}
+```
+
+### OpenHAB-Specific Development Patterns
+
+#### REST API Communication
 ```javascript
 // Standard OpenHAB REST API patterns
 const request = require('request');
@@ -99,7 +432,7 @@ function getItems() {
 }
 ```
 
-### Server-Sent Events Handling
+#### Server-Sent Events Handling
 ```javascript
 const EventSource = require('eventsource');
 
@@ -125,7 +458,7 @@ function connectSSE() {
 }
 ```
 
-### OpenHAB Item Type Mapping
+#### OpenHAB Item Type Mapping
 Map OpenHAB item types to appropriate ioBroker state configurations:
 ```javascript
 const ohTypes = {
@@ -139,7 +472,7 @@ const ohTypes = {
 };
 ```
 
-### Command Handling
+#### Command Handling
 Send commands to OpenHAB items with proper type conversion:
 ```javascript
 function sendCommand(itemName, command) {
@@ -159,214 +492,7 @@ function sendCommand(itemName, command) {
 }
 ```
 
-## Testing
-
-### Unit Testing
-- Use Jest as the primary testing framework for ioBroker adapters
-- Create tests for all adapter main functions and helper methods
-- Test error handling scenarios and edge cases
-- Mock external API calls and hardware dependencies
-- For adapters connecting to APIs/devices not reachable by internet, provide example data files to allow testing of functionality without live connections
-- Example test structure:
-  ```javascript
-  describe('AdapterName', () => {
-    let adapter;
-    
-    beforeEach(() => {
-      // Setup test adapter instance
-    });
-    
-    test('should initialize correctly', () => {
-      // Test adapter initialization
-    });
-  });
-  ```
-
-### Integration Testing
-
-**IMPORTANT**: Use the official `@iobroker/testing` framework for all integration tests. This is the ONLY correct way to test ioBroker adapters.
-
-**Official Documentation**: https://github.com/ioBroker/testing
-
-#### Framework Structure
-Integration tests MUST follow this exact pattern:
-
-```javascript
-const path = require('path');
-const { tests } = require('@iobroker/testing');
-
-// Define test coordinates or configuration
-const TEST_COORDINATES = '52.520008,13.404954'; // Berlin
-const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-// Use tests.integration() with defineAdditionalTests
-tests.integration(path.join(__dirname, '..'), {
-    defineAdditionalTests({ suite }) {
-        suite('Test adapter with specific configuration', (getHarness) => {
-            let harness;
-
-            before(() => {
-                harness = getHarness();
-            });
-
-            it('should configure and start adapter', function () {
-                return new Promise(async (resolve, reject) => {
-                    try {
-                        harness = getHarness();
-                        
-                        // Get adapter object using promisified pattern
-                        const obj = await new Promise((res, rej) => {
-                            harness.objects.getObject('system.adapter.your-adapter.0', (err, o) => {
-                                if (err) return rej(err);
-                                res(o);
-                            });
-                        });
-                        
-                        if (!obj) {
-                            return reject(new Error('Adapter object not found'));
-                        }
-
-                        // Configure adapter properties
-                        Object.assign(obj.native, {
-                            position: TEST_COORDINATES,
-                            createCurrently: true,
-                            createHourly: true,
-                            createDaily: true,
-                            // Add other configuration as needed
-                        });
-
-                        // Set the updated configuration
-                        harness.objects.setObject(obj._id, obj);
-
-                        console.log('✅ Step 1: Configuration written, starting adapter...');
-                        
-                        // Start adapter and wait
-                        await harness.startAdapterAndWait();
-                        
-                        console.log('✅ Step 2: Adapter started');
-
-                        // Wait for adapter to process data
-                        const waitMs = 15000;
-                        await wait(waitMs);
-
-                        console.log('🔍 Step 3: Checking states after adapter run...');
-                        
-                        resolve('Test completed successfully');
-                    } catch (error) {
-                        console.error('❌ Test failed:', error);
-                        reject(error);
-                    }
-                });
-            }).timeout(120000); // 2 minute timeout for integration tests
-        });
-    }
-});
-```
-
-#### Testing Framework Best Practices
-
-1. **Always use the official @iobroker/testing framework** - do not create custom test harnesses
-2. **Use defineAdditionalTests pattern** - this is the correct way to add integration tests
-3. **Handle async operations properly** - wrap in try/catch, use proper Promise patterns
-4. **Provide meaningful console output** - help developers understand test progress
-5. **Set appropriate timeouts** - integration tests often need 2+ minutes
-6. **Clean configuration properly** - always configure the adapter properly before starting
-
-#### Common Integration Test Patterns
-
-**Configuration Testing:**
-```javascript
-// Always get and modify the adapter object properly
-const obj = await new Promise((res, rej) => {
-    harness.objects.getObject('system.adapter.openhab.0', (err, o) => {
-        if (err) return rej(err);
-        res(o);
-    });
-});
-
-// Modify native configuration
-Object.assign(obj.native, {
-    host: 'demo.openhab.org',
-    port: 8080,
-    protocol: 'http',
-    path: '/rest'
-});
-
-harness.objects.setObject(obj._id, obj);
-```
-
-**State Verification:**
-```javascript
-// Check if states were created correctly
-const states = await harness.objects.getObjectViewAsync('system', 'state', 
-    { startkey: 'openhab.0.', endkey: 'openhab.0.\u9999' });
-
-console.log(`Found ${states.rows.length} states created by adapter`);
-
-// Verify specific state exists and has correct properties
-const connectionState = await harness.states.getStateAsync('openhab.0.info.connection');
-expect(connectionState).toBeTruthy();
-```
-
-**Timeout and Error Handling:**
-```javascript
-it('should handle connection timeouts gracefully', async function () {
-    this.timeout(180000); // 3 minutes for connection tests
-    
-    try {
-        // Configure adapter with invalid host to test timeout
-        await configureAdapter(harness, { host: 'invalid.host.local' });
-        await harness.startAdapterAndWait();
-        
-        // Wait for timeout handling
-        await wait(60000);
-        
-        // Verify adapter handled timeout correctly
-        const connectionState = await harness.states.getStateAsync('openhab.0.info.connection');
-        expect(connectionState.val).toBe(false);
-        
-    } catch (error) {
-        throw new Error(`Connection timeout test failed: ${error.message}`);
-    }
-});
-```
-
-## Logging and Debugging
-
-### Logging Best Practices
-- Use appropriate log levels: `adapter.log.error()`, `adapter.log.warn()`, `adapter.log.info()`, `adapter.log.debug()`
-- Include context in log messages: item names, error details, operation being performed
-- Log connection state changes and important operations
-- Use debug level for detailed API communication logs
-
-### Error Handling
-- Always catch and handle API errors gracefully
-- Implement retry logic for temporary connection issues
-- Set connection state to false on persistent errors
-- Provide user-friendly error messages in logs
-
-### Connection Management
-- Implement automatic reconnection for lost connections
-- Use connection timeouts to prevent hanging requests
-- Monitor connection state and update `info.connection` accordingly
-- Clean up resources (EventSource, timers) in unload method
-
-## State Management and Object Creation
-
-### Creating ioBroker Objects
-- Create channel objects for grouping related states
-- Use appropriate roles for different state types (switch, sensor, indicator, etc.)
-- Set proper min/max values for numeric states
-- Include units where applicable (°C, %, W, etc.)
-
-### State Updates
-- Always use proper acknowledgment flags (ack: true for updates, ack: false for commands)
-- Update states only when values actually change to reduce system load
-- Handle type conversion between OpenHAB and ioBroker formats
-- Preserve OpenHAB timestamps when possible
-
-## unload() Method Implementation
-
+#### OpenHAB unload() Implementation
 ```javascript
 adapter.on('unload', callback => {
   try {
@@ -393,24 +519,185 @@ adapter.on('unload', callback => {
 });
 ```
 
-## Code Style and Standards
+---
 
-- Follow JavaScript/TypeScript best practices
-- Use async/await for asynchronous operations
-- Implement proper resource cleanup in `unload()` method
-- Use semantic versioning for adapter releases
-- Include proper JSDoc comments for public methods
+## Admin UI Configuration
 
-## CI/CD and Testing Integration
+### JSON-Config Setup
 
-### GitHub Actions for API Testing
-For adapters with external API dependencies, implement separate CI/CD jobs:
+Use JSON-Config format for modern ioBroker admin interfaces.
+
+**Example Structure:**
+```json
+{
+  "type": "panel",
+  "items": {
+    "host": {
+      "type": "text",
+      "label": "Host address",
+      "help": "IP address or hostname of the device"
+    }
+  }
+}
+```
+
+**Guidelines:**
+- ✅ Use consistent naming conventions
+- ✅ Provide sensible default values
+- ✅ Include validation for required fields
+- ✅ Add tooltips for complex options
+- ✅ Ensure translations for all supported languages (minimum English and German)
+- ✅ Write end-user friendly labels, avoid technical jargon
+
+### Translation Management
+
+**CRITICAL:** Translation files must stay synchronized with `admin/jsonConfig.json`. Orphaned keys or missing translations cause UI issues and PR review delays.
+
+#### Overview
+- **Location:** `admin/i18n/{lang}/translations.json` for 11 languages (de, en, es, fr, it, nl, pl, pt, ru, uk, zh-cn)
+- **Source of truth:** `admin/jsonConfig.json` - all `label` and `help` properties must have translations
+- **Command:** `npm run translate` - auto-generates translations but does NOT remove orphaned keys
+- **Formatting:** English uses tabs, other languages use 4 spaces
+
+#### Critical Rules
+1. ✅ Keys must match exactly with jsonConfig.json
+2. ✅ No orphaned keys in translation files
+3. ✅ All translations must be in native language (no English fallbacks)
+4. ✅ Keys must be sorted alphabetically
+
+#### Translation Checklist
+
+Before committing changes to admin UI or translations:
+1. ✅ No orphaned keys in any translation file
+2. ✅ All translations in native language
+3. ✅ Keys alphabetically sorted
+4. ✅ `npm run lint` passes
+5. ✅ `npm run test` passes
+6. ✅ Admin UI displays correctly
+
+---
+
+## Documentation
+
+### README Updates
+
+#### Required Sections
+1. **Installation** - Clear npm/ioBroker admin installation steps
+2. **Configuration** - Detailed configuration options with examples
+3. **Usage** - Practical examples and use cases
+4. **Changelog** - Version history (use "## **WORK IN PROGRESS**" for ongoing changes)
+5. **License** - License information (typically MIT for ioBroker adapters)
+6. **Support** - Links to issues, discussions, community support
+
+#### Mandatory README Updates for PRs
+
+For **every PR or new feature**, always add a user-friendly entry to README.md:
+
+- Add entries under `## **WORK IN PROGRESS**` section
+- Use format: `* (author) **TYPE**: Description of user-visible change`
+- Types: **NEW** (features), **FIXED** (bugs), **ENHANCED** (improvements), **TESTING** (test additions), **CI/CD** (automation)
+
+**Example:**
+```markdown
+## **WORK IN PROGRESS**
+
+* (DutchmanNL) **FIXED**: Adapter now properly validates login credentials (fixes #25)
+* (DutchmanNL) **NEW**: Added device discovery to simplify initial setup
+```
+
+### Changelog Management
+
+Follow the [AlCalzone release-script](https://github.com/AlCalzone/release-script) standard.
+
+#### Format Requirements
+
+```markdown
+# Changelog
+
+<!--
+  Placeholder for the next version (at the beginning of the line):
+  ## **WORK IN PROGRESS**
+-->
+
+## **WORK IN PROGRESS**
+
+- (author) **NEW**: Added new feature X
+- (author) **FIXED**: Fixed bug Y (fixes #25)
+
+## v0.1.0 (2023-01-01)
+Initial release
+```
+
+#### Workflow Process
+- **During Development:** All changes go under `## **WORK IN PROGRESS**`
+- **For Every PR:** Add user-facing changes to WORK IN PROGRESS section
+- **Before Merge:** Version number and date added when merging to main
+- **Release Process:** Release-script automatically converts placeholder to actual version
+
+#### Change Entry Format
+- Format: `- (author) **TYPE**: User-friendly description`
+- Types: **NEW**, **FIXED**, **ENHANCED**
+- Focus on user impact, not technical implementation
+- Reference issues: "fixes #XX" or "solves #XX"
+
+---
+
+## CI/CD & GitHub Actions
+
+### Workflow Configuration
+
+#### GitHub Actions Best Practices
+
+**Must use ioBroker official testing actions:**
+- `ioBroker/testing-action-check@v1` for lint and package validation
+- `ioBroker/testing-action-adapter@v1` for adapter tests
+- `ioBroker/testing-action-deploy@v1` for automated releases with Trusted Publishing (OIDC)
+
+**Configuration:**
+- **Node.js versions:** Test on 20.x, 22.x, 24.x
+- **Platform:** Use ubuntu-22.04
+- **Automated releases:** Deploy to npm on version tags (requires NPM Trusted Publishing)
+- **Monitoring:** Include Sentry release tracking for error monitoring
+
+#### Critical: Lint-First Validation Workflow
+
+**ALWAYS run ESLint checks BEFORE other tests.** Benefits:
+- Catches code quality issues immediately
+- Prevents wasting CI resources on tests that would fail due to linting errors
+- Provides faster feedback to developers
+- Enforces consistent code quality
+
+**Workflow Dependency Configuration:**
+```yaml
+jobs:
+  check-and-lint:
+    # Runs ESLint and package validation
+    # Uses: ioBroker/testing-action-check@v1
+    
+  adapter-tests:
+    needs: [check-and-lint]  # Wait for linting to pass
+    # Run adapter unit tests
+    
+  integration-tests:
+    needs: [check-and-lint, adapter-tests]  # Wait for both
+    # Run integration tests
+```
+
+**Key Points:**
+- The `check-and-lint` job has NO dependencies - runs first
+- ALL other test jobs MUST list `check-and-lint` in their `needs` array
+- If linting fails, no other tests run, saving time
+- Fix all ESLint errors before proceeding
+
+### Testing Integration
+
+#### API Testing in CI/CD
+
+For adapters with external API dependencies:
 
 ```yaml
-# Tests API connectivity with demo credentials (runs separately)
 demo-api-tests:
   if: contains(github.event.head_commit.message, '[skip ci]') == false
-  
   runs-on: ubuntu-22.04
   
   steps:
@@ -430,129 +717,17 @@ demo-api-tests:
       run: npm run test:integration-demo
 ```
 
-### CI/CD Best Practices
+#### Testing Best Practices
 - Run credential tests separately from main test suite
-- Use ubuntu-22.04 for consistency
 - Don't make credential tests required for deployment
-- Provide clear failure messages for API connectivity issues
-- Use appropriate timeouts for external API calls (120+ seconds)
+- Provide clear failure messages for API issues
+- Use appropriate timeouts for external calls (120+ seconds)
 
-### Package.json Script Integration
-Add dedicated script for credential testing:
+#### Package.json Integration
 ```json
 {
   "scripts": {
     "test:integration-demo": "mocha test/integration-demo --exit"
   }
 }
-```
-
-### Practical Example: Complete API Testing Implementation
-Here's a complete example based on lessons learned from the Discovergy adapter:
-
-#### test/integration-demo.js
-```javascript
-const path = require("path");
-const { tests } = require("@iobroker/testing");
-
-// Helper function to encrypt password using ioBroker's encryption method
-async function encryptPassword(harness, password) {
-    const systemConfig = await harness.objects.getObjectAsync("system.config");
-    
-    if (!systemConfig || !systemConfig.native || !systemConfig.native.secret) {
-        throw new Error("Could not retrieve system secret for password encryption");
-    }
-    
-    const secret = systemConfig.native.secret;
-    let result = '';
-    for (let i = 0; i < password.length; ++i) {
-        result += String.fromCharCode(secret[i % secret.length].charCodeAt(0) ^ password.charCodeAt(i));
-    }
-    
-    return result;
-}
-
-// Run integration tests with demo credentials
-tests.integration(path.join(__dirname, ".."), {
-    defineAdditionalTests({ suite }) {
-        suite("API Testing with Demo Credentials", (getHarness) => {
-            let harness;
-            
-            before(() => {
-                harness = getHarness();
-            });
-
-            it("Should connect to API and initialize with demo credentials", async () => {
-                console.log("Setting up demo credentials...");
-                
-                if (harness.isAdapterRunning()) {
-                    await harness.stopAdapter();
-                }
-                
-                const encryptedPassword = await encryptPassword(harness, "demo_password");
-                
-                await harness.changeAdapterConfig("your-adapter", {
-                    native: {
-                        username: "demo@provider.com",
-                        password: encryptedPassword,
-                        // other config options
-                    }
-                });
-
-                console.log("Starting adapter with demo credentials...");
-                await harness.startAdapter();
-                
-                // Wait for API calls and initialization
-                await new Promise(resolve => setTimeout(resolve, 60000));
-                
-                const connectionState = await harness.states.getStateAsync("your-adapter.0.info.connection");
-                
-                if (connectionState && connectionState.val === true) {
-                    console.log("✅ SUCCESS: API connection established");
-                    return true;
-                } else {
-                    throw new Error("API Test Failed: Expected API connection to be established with demo credentials. " +
-                        "Check logs above for specific API errors (DNS resolution, 401 Unauthorized, network issues, etc.)");
-                }
-            }).timeout(120000);
-        });
-    }
-});
-```
-
-### OpenHAB-Specific Testing Considerations
-
-When testing the OpenHAB adapter:
-
-1. **Demo Server Testing**: Use OpenHAB's demo server (demo.openhab.org) for integration tests
-2. **Item Discovery**: Test that the adapter correctly discovers and creates ioBroker objects for OpenHAB items
-3. **Command Sending**: Verify bidirectional communication by sending commands to switchable items
-4. **SSE Connection**: Test real-time updates via Server-Sent Events
-5. **Error Handling**: Test behavior with invalid OpenHAB server configurations
-
-```javascript
-// OpenHAB-specific integration test example
-it("Should discover OpenHAB items and create ioBroker objects", async () => {
-    // Configure adapter to use demo OpenHAB server
-    await harness.changeAdapterConfig("openhab", {
-        native: {
-            host: "demo.openhab.org",
-            port: 8080,
-            protocol: "http",
-            path: "/rest"
-        }
-    });
-
-    await harness.startAdapterAndWait();
-    
-    // Wait for item discovery
-    await wait(30000);
-    
-    // Check if items were discovered and objects created
-    const objects = await harness.objects.getObjectViewAsync('system', 'state', 
-        { startkey: 'openhab.0.', endkey: 'openhab.0.\u9999' });
-    
-    expect(objects.rows.length).toBeGreaterThan(0);
-    console.log(`✅ Discovered ${objects.rows.length} OpenHAB items`);
-}).timeout(120000);
 ```
