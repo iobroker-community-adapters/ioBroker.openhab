@@ -352,7 +352,7 @@ adapter.on('ready', () => {
                 if (!obj.native || !obj.native.secret) {
                     obj.native = obj.native || {};
 
-                    require('crypto').randomBytes(24, (ex, buf) => {
+                    require('node:crypto').randomBytes(24, (ex, buf) => {
                         secret = buf.toString('hex');
                         adapter.extendForeignObject('system.config', {native: {secret: secret}});
                         main();
