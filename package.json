@@ -21,7 +21,7 @@
     "url": "https://github.com/iobroker-community-adapters/ioBroker.openhab"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "dependencies": {
     "request": "^2.88.0",
