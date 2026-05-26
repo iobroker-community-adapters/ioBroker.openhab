@@ -90,7 +90,6 @@
     "mode": "daemon",
     "icon": "openhab.png",
     "enabled": false,
-    "materialize": true,
     "extIcon": "https://raw.githubusercontent.com/iobroker-community-adapters/ioBroker.openhab/master/admin/openhab.png",
     "keywords": [
       "openhab"
@@ -112,7 +111,10 @@
       {
         "admin": ">=7.7.22"
       }
-    ]
+    ],
+    "adminUI": {
+      "config": "materialize"
+    }
   },
   "native": {
     "host": "demo.openhab.org",
